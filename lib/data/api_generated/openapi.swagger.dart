@@ -1,6 +1,4 @@
-// coverage:ignore-file
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element_parameter
 
 import 'package:json_annotation/json_annotation.dart';
 import 'package:json_annotation/json_annotation.dart' as json;
@@ -15,7 +13,8 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart' show MultipartFile;
 import 'package:chopper/chopper.dart' as chopper;
-import 'openapi.metadata.swagger.dart';
+import 'openapi.enums.swagger.dart' as enums;
+export 'openapi.enums.swagger.dart';
 export 'openapi.models.swagger.dart';
 
 part 'openapi.swagger.chopper.dart';
@@ -40,102 +39,163 @@ abstract class Openapi extends ChopperService {
     }
 
     final newClient = ChopperClient(
-      services: [_$Openapi()],
-      converter: converter ?? $JsonSerializableConverter(),
-      interceptors: interceptors ?? [],
-      client: httpClient,
-      authenticator: authenticator,
-      errorConverter: errorConverter,
-      baseUrl: baseUrl ?? Uri.parse('http://'),
-    );
+        services: [_$Openapi()],
+        converter: converter ?? $JsonSerializableConverter(),
+        interceptors: interceptors ?? [],
+        client: httpClient,
+        authenticator: authenticator,
+        errorConverter: errorConverter,
+        baseUrl: baseUrl ?? Uri.parse('http://'));
     return _$Openapi(newClient);
   }
 
   ///Register User
-  Future<chopper.Response<UserResponse>> apiV1AuthRegisterPost({
-    required UserCreate? body,
-  }) {
+  Future<chopper.Response<UserResponse>> apiV1AuthRegisterPost(
+      {required UserCreate? body}) {
     generatedMapping.putIfAbsent(
-      UserResponse,
-      () => UserResponse.fromJsonFactory,
-    );
+        UserResponse, () => UserResponse.fromJsonFactory);
 
     return _apiV1AuthRegisterPost(body: body);
   }
 
   ///Register User
-  @POST(path: '/api/v1/auth/register', optionalBody: true)
-  Future<chopper.Response<UserResponse>> _apiV1AuthRegisterPost({
-    @Body() required UserCreate? body,
-    @chopper.Tag()
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description: 'Registra un nuevo usuario en Kitchy.',
-      summary: 'Register User',
-      operationId: 'register_user_api_v1_auth_register_post',
-      consumes: [],
-      produces: [],
-      security: [],
-      tags: ["Autenticación"],
-      deprecated: false,
-    ),
-  });
+  @Post(
+    path: '/api/v1/auth/register',
+    optionalBody: true,
+  )
+  Future<chopper.Response<UserResponse>> _apiV1AuthRegisterPost(
+      {@Body() required UserCreate? body});
 
   ///Login For Access Token
-  Future<chopper.Response<Token>> apiV1AuthLoginPost({
-    required Map<String, String> body,
-  }) {
+  Future<chopper.Response<Token>> apiV1AuthLoginPost(
+      {required Map<String, String> body}) {
     generatedMapping.putIfAbsent(Token, () => Token.fromJsonFactory);
 
     return _apiV1AuthLoginPost(body: body);
   }
 
   ///Login For Access Token
-  @POST(
+  @Post(
     path: '/api/v1/auth/login',
     headers: {contentTypeKey: formEncodedHeaders},
   )
   @FactoryConverter(request: FormUrlEncodedConverter.requestFactory)
-  Future<chopper.Response<Token>> _apiV1AuthLoginPost({
-    @Body() required Map<String, String> body,
-    @chopper.Tag()
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description: '''Inicia sesión y devuelve un Token JWT.
-OAuth2 espera que el correo venga en el campo \'username\'.''',
-      summary: 'Login For Access Token',
-      operationId: 'login_for_access_token_api_v1_auth_login_post',
-      consumes: [],
-      produces: [],
-      security: [],
-      tags: ["Autenticación"],
-      deprecated: false,
-    ),
-  });
+  Future<chopper.Response<Token>> _apiV1AuthLoginPost(
+      {@Body() required Map<String, String> body});
 
   ///Read Users Me
   Future<chopper.Response<UserResponse>> apiV1UsersMeGet() {
     generatedMapping.putIfAbsent(
-      UserResponse,
-      () => UserResponse.fromJsonFactory,
-    );
+        UserResponse, () => UserResponse.fromJsonFactory);
 
     return _apiV1UsersMeGet();
   }
 
   ///Read Users Me
-  @GET(path: '/api/v1/users/me')
-  Future<chopper.Response<UserResponse>> _apiV1UsersMeGet({
-    @chopper.Tag()
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description:
-          'Ruta protegida que devuelve los datos del usuario dueño del token.',
-      summary: 'Read Users Me',
-      operationId: 'read_users_me_api_v1_users_me_get',
-      consumes: [],
-      produces: [],
-      security: ["OAuth2PasswordBearer"],
-      tags: ["Usuarios"],
-      deprecated: false,
-    ),
+  @Get(path: '/api/v1/users/me')
+  Future<chopper.Response<UserResponse>> _apiV1UsersMeGet();
+
+  ///Get Insumos
+  Future<chopper.Response<List<InsumoResponse>>> apiV1InsumosGet() {
+    generatedMapping.putIfAbsent(
+        InsumoResponse, () => InsumoResponse.fromJsonFactory);
+
+    return _apiV1InsumosGet();
+  }
+
+  ///Get Insumos
+  @Get(path: '/api/v1/insumos/')
+  Future<chopper.Response<List<InsumoResponse>>> _apiV1InsumosGet();
+
+  ///Create Insumo
+  Future<chopper.Response<InsumoResponse>> apiV1InsumosPost(
+      {required InsumoCreate? body}) {
+    generatedMapping.putIfAbsent(
+        InsumoResponse, () => InsumoResponse.fromJsonFactory);
+
+    return _apiV1InsumosPost(body: body);
+  }
+
+  ///Create Insumo
+  @Post(
+    path: '/api/v1/insumos/',
+    optionalBody: true,
+  )
+  Future<chopper.Response<InsumoResponse>> _apiV1InsumosPost(
+      {@Body() required InsumoCreate? body});
+
+  ///Get Insumo
+  ///@param id
+  Future<chopper.Response<InsumoResponse>> apiV1InsumosIdGet(
+      {required String? id}) {
+    generatedMapping.putIfAbsent(
+        InsumoResponse, () => InsumoResponse.fromJsonFactory);
+
+    return _apiV1InsumosIdGet(id: id);
+  }
+
+  ///Get Insumo
+  ///@param id
+  @Get(path: '/api/v1/insumos/{id}')
+  Future<chopper.Response<InsumoResponse>> _apiV1InsumosIdGet(
+      {@Path('id') required String? id});
+
+  ///Update Insumo
+  ///@param id
+  Future<chopper.Response<InsumoResponse>> apiV1InsumosIdPut({
+    required String? id,
+    required InsumoUpdate? body,
+  }) {
+    generatedMapping.putIfAbsent(
+        InsumoResponse, () => InsumoResponse.fromJsonFactory);
+
+    return _apiV1InsumosIdPut(id: id, body: body);
+  }
+
+  ///Update Insumo
+  ///@param id
+  @Put(
+    path: '/api/v1/insumos/{id}',
+    optionalBody: true,
+  )
+  Future<chopper.Response<InsumoResponse>> _apiV1InsumosIdPut({
+    @Path('id') required String? id,
+    @Body() required InsumoUpdate? body,
+  });
+
+  ///Delete Insumo
+  ///@param id
+  Future<chopper.Response> apiV1InsumosIdDelete({required String? id}) {
+    return _apiV1InsumosIdDelete(id: id);
+  }
+
+  ///Delete Insumo
+  ///@param id
+  @Delete(path: '/api/v1/insumos/{id}')
+  Future<chopper.Response> _apiV1InsumosIdDelete(
+      {@Path('id') required String? id});
+
+  ///Registrar Movimiento
+  ///@param id
+  Future<chopper.Response<InsumoResponse>> apiV1InsumosIdMovimientosPost({
+    required String? id,
+    required MovimientoCreate? body,
+  }) {
+    generatedMapping.putIfAbsent(
+        InsumoResponse, () => InsumoResponse.fromJsonFactory);
+
+    return _apiV1InsumosIdMovimientosPost(id: id, body: body);
+  }
+
+  ///Registrar Movimiento
+  ///@param id
+  @Post(
+    path: '/api/v1/insumos/{id}/movimientos',
+    optionalBody: true,
+  )
+  Future<chopper.Response<InsumoResponse>> _apiV1InsumosIdMovimientosPost({
+    @Path('id') required String? id,
+    @Body() required MovimientoCreate? body,
   });
 
   ///Health Check
@@ -144,20 +204,8 @@ OAuth2 espera que el correo venga en el campo \'username\'.''',
   }
 
   ///Health Check
-  @GET(path: '/')
-  Future<chopper.Response> _get({
-    @chopper.Tag()
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description: '',
-      summary: 'Health Check',
-      operationId: 'health_check__get',
-      consumes: [],
-      produces: [],
-      security: [],
-      tags: ["Health Check"],
-      deprecated: false,
-    ),
-  });
+  @Get(path: '/')
+  Future<chopper.Response> _get();
 }
 
 typedef $JsonFactory<T> = T Function(Map<String, dynamic> json);
@@ -207,8 +255,7 @@ class $CustomJsonDecoder {
 class $JsonSerializableConverter extends chopper.JsonConverter {
   @override
   FutureOr<chopper.Response<ResultType>> convertResponse<ResultType, Item>(
-    chopper.Response response,
-  ) async {
+      chopper.Response response) async {
     if (response.bodyString.isEmpty) {
       // In rare cases, when let's say 204 (no content) is returned -
       // we cannot decode the missing json with the result type specified
@@ -221,16 +268,13 @@ class $JsonSerializableConverter extends chopper.JsonConverter {
 
     if (ResultType == DateTime) {
       return response.copyWith(
-        body:
-            DateTime.parse((response.body as String).replaceAll('"', ''))
-                as ResultType,
-      );
+          body: DateTime.parse((response.body as String).replaceAll('"', ''))
+              as ResultType);
     }
 
     final jsonRes = await super.convertResponse(response);
     return jsonRes.copyWith<ResultType>(
-      body: $jsonDecoder.decode<Item>(jsonRes.body) as ResultType,
-    );
+        body: $jsonDecoder.decode<Item>(jsonRes.body) as ResultType);
   }
 }
 

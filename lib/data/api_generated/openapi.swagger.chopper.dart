@@ -1,5 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// dart format width=80
 
 part of 'openapi.swagger.dart';
 
@@ -19,19 +18,8 @@ final class _$Openapi extends Openapi {
   final Type definitionType = Openapi;
 
   @override
-  Future<Response<UserResponse>> _apiV1AuthRegisterPost({
-    required UserCreate? body,
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description: 'Registra un nuevo usuario en Kitchy.',
-      summary: 'Register User',
-      operationId: 'register_user_api_v1_auth_register_post',
-      consumes: [],
-      produces: [],
-      security: [],
-      tags: ["Autenticación"],
-      deprecated: false,
-    ),
-  }) {
+  Future<Response<UserResponse>> _apiV1AuthRegisterPost(
+      {required UserCreate? body}) {
     final Uri $url = Uri.parse('/api/v1/auth/register');
     final $body = body;
     final Request $request = Request(
@@ -39,26 +27,13 @@ final class _$Openapi extends Openapi {
       $url,
       client.baseUrl,
       body: $body,
-      tag: swaggerMetaData,
     );
     return client.send<UserResponse, UserResponse>($request);
   }
 
   @override
-  Future<Response<Token>> _apiV1AuthLoginPost({
-    required Map<String, String> body,
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description: '''Inicia sesión y devuelve un Token JWT.
-OAuth2 espera que el correo venga en el campo \'username\'.''',
-      summary: 'Login For Access Token',
-      operationId: 'login_for_access_token_api_v1_auth_login_post',
-      consumes: [],
-      produces: [],
-      security: [],
-      tags: ["Autenticación"],
-      deprecated: false,
-    ),
-  }) {
+  Future<Response<Token>> _apiV1AuthLoginPost(
+      {required Map<String, String> body}) {
     final Uri $url = Uri.parse('/api/v1/auth/login');
     final Map<String, String> $headers = {
       'content-type': 'application/x-www-form-urlencoded',
@@ -70,7 +45,6 @@ OAuth2 espera que el correo venga en el campo \'username\'.''',
       client.baseUrl,
       body: $body,
       headers: $headers,
-      tag: swaggerMetaData,
     );
     return client.send<Token, Token>(
       $request,
@@ -79,48 +53,102 @@ OAuth2 espera que el correo venga en el campo \'username\'.''',
   }
 
   @override
-  Future<Response<UserResponse>> _apiV1UsersMeGet({
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description:
-          'Ruta protegida que devuelve los datos del usuario dueño del token.',
-      summary: 'Read Users Me',
-      operationId: 'read_users_me_api_v1_users_me_get',
-      consumes: [],
-      produces: [],
-      security: ["OAuth2PasswordBearer"],
-      tags: ["Usuarios"],
-      deprecated: false,
-    ),
-  }) {
+  Future<Response<UserResponse>> _apiV1UsersMeGet() {
     final Uri $url = Uri.parse('/api/v1/users/me');
     final Request $request = Request(
       'GET',
       $url,
       client.baseUrl,
-      tag: swaggerMetaData,
     );
     return client.send<UserResponse, UserResponse>($request);
   }
 
   @override
-  Future<Response<dynamic>> _get({
-    SwaggerMetaData swaggerMetaData = const SwaggerMetaData(
-      description: '',
-      summary: 'Health Check',
-      operationId: 'health_check__get',
-      consumes: [],
-      produces: [],
-      security: [],
-      tags: ["Health Check"],
-      deprecated: false,
-    ),
+  Future<Response<List<InsumoResponse>>> _apiV1InsumosGet() {
+    final Uri $url = Uri.parse('/api/v1/insumos/');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<List<InsumoResponse>, InsumoResponse>($request);
+  }
+
+  @override
+  Future<Response<InsumoResponse>> _apiV1InsumosPost(
+      {required InsumoCreate? body}) {
+    final Uri $url = Uri.parse('/api/v1/insumos/');
+    final $body = body;
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<InsumoResponse, InsumoResponse>($request);
+  }
+
+  @override
+  Future<Response<InsumoResponse>> _apiV1InsumosIdGet({required String? id}) {
+    final Uri $url = Uri.parse('/api/v1/insumos/${id}');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<InsumoResponse, InsumoResponse>($request);
+  }
+
+  @override
+  Future<Response<InsumoResponse>> _apiV1InsumosIdPut({
+    required String? id,
+    required InsumoUpdate? body,
   }) {
+    final Uri $url = Uri.parse('/api/v1/insumos/${id}');
+    final $body = body;
+    final Request $request = Request(
+      'PUT',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<InsumoResponse, InsumoResponse>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> _apiV1InsumosIdDelete({required String? id}) {
+    final Uri $url = Uri.parse('/api/v1/insumos/${id}');
+    final Request $request = Request(
+      'DELETE',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<InsumoResponse>> _apiV1InsumosIdMovimientosPost({
+    required String? id,
+    required MovimientoCreate? body,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/insumos/${id}/movimientos');
+    final $body = body;
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<InsumoResponse, InsumoResponse>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> _get() {
     final Uri $url = Uri.parse('/');
     final Request $request = Request(
       'GET',
       $url,
       client.baseUrl,
-      tag: swaggerMetaData,
     );
     return client.send<dynamic, dynamic>($request);
   }
