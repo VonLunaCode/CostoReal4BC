@@ -5,21 +5,20 @@ import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/login_screen.dart';
 import '../presentation/screens/register_screen.dart';
 
-/// Configuración de GoRouter con navegación condicional basada en la autenticación.
+import '../presentation/alacena/alacena_screen.dart';
+import '../presentation/alacena/insumo_form_screen.dart';
+import '../presentation/alacena/insumo_detail_screen.dart';
+
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
     initialLocation: '/',
-    // Escucha el estado del authProvider para decidir a dónde enviar al usuario
     redirect: (context, state) {
       final isAuth = authState.status == AuthStatus.authenticated;
       final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
 
-      // Si no está autenticado y no está en login/registro, forzar login
       if (!isAuth && !isLoggingIn) return '/login';
-      
-      // Si está autenticado y trata de ir a login, enviarlo al Home
       if (isAuth && isLoggingIn) return '/';
       
       return null;
@@ -28,6 +27,25 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const HomeScreen(),
+        routes: [
+          GoRoute(
+            path: 'alacena',
+            builder: (context, state) => const AlacenaScreen(),
+            routes: [
+              GoRoute(
+                path: 'crear',
+                builder: (context, state) => const InsumoFormScreen(modo: 'crear'),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return InsumoDetailScreen(insumoId: id);
+                },
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: '/login',
