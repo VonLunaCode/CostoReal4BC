@@ -8,6 +8,7 @@ import '../presentation/screens/register_screen.dart';
 import '../presentation/alacena/alacena_screen.dart';
 import '../presentation/alacena/insumo_form_screen.dart';
 import '../presentation/alacena/insumo_detail_screen.dart';
+import '../data/api_generated/openapi.models.swagger.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -34,7 +35,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: 'crear',
-                builder: (context, state) => const InsumoFormScreen(modo: 'crear'),
+                builder: (context, state) => const InsumoFormScreen(),
+              ),
+              GoRoute(
+                path: 'editar',
+                builder: (context, state) {
+                  final insumo = state.extra as InsumoResponse?;
+                  return InsumoFormScreen(insumoExistente: insumo);
+                },
               ),
               GoRoute(
                 path: ':id',
