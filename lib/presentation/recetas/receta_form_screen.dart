@@ -6,10 +6,6 @@ import '../../data/api_generated/openapi.models.swagger.dart';
 import '../alacena/alacena_screen.dart';
 import './recetas_providers.dart';
 import './models/receta_form_data.dart';
-import './widgets/costeo_bar_widget.dart';
-import './widgets/gastos_ocultos_widget.dart';
-import './widgets/margen_slider_widget.dart';
-import './widgets/dona_chart_widget.dart';
 
 class RecetaFormScreen extends ConsumerStatefulWidget {
   const RecetaFormScreen({super.key});
@@ -27,12 +23,6 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
   final List<IngredienteFormData> _ingredientes = [];
   final List<PasoFormData> _pasos = [PasoFormData()];
 
-  bool _empaqueActivo = false;
-  double _empaqueValor = 0.0;
-  bool _gasLuzActivo = false;
-  double _gasLuzPorcentaje = 0.0;
-  double _margenSeleccionado = 30.0;
-
   bool _isSaving = false;
 
   @override
@@ -42,25 +32,8 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
     super.dispose();
   }
 
-  double _getSubtotalIngredientes() {
-    double subtotal = 0.0;
-    for (var ing in _ingredientes) {
-      if (ing.insumo == null) continue;
-      final double precioCompra = double.tryParse(ing.insumo!.precioCompra.toString()) ?? 0.0;
-      final double cantidadComprada = double.tryParse(ing.insumo!.cantidadComprada.toString()) ?? 1.0;
-      if (cantidadComprada == 0) continue;
-      subtotal += (precioCompra / cantidadComprada) * (double.tryParse(ing.cantidad) ?? 0.0);
-    }
-    return subtotal;
-  }
-
-  double _getCalculatedCostoPorPorcion() {
-    double subtotalIngredientes = _getSubtotalIngredientes();
-    double costoTotal = subtotalIngredientes;
-    if (_empaqueActivo) costoTotal += _empaqueValor;
-    if (_gasLuzActivo) costoTotal += (subtotalIngredientes * _gasLuzPorcentaje / 100);
-    final int porciones = int.tryParse(_porcionesController.text) ?? 1;
-    return porciones > 0 ? costoTotal / porciones : 0.0;
+  int _getTotalTime() {
+    return _pasos.fold(0, (sum, paso) => sum + (paso.duracionSegundos != null ? (paso.duracionSegundos! ~/ 60) : 0));
   }
 
   Future<void> _saveReceta() async {
@@ -82,7 +55,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
       final recetaData = RecetaCreate(
         nombre: _nombreController.text,
         porciones: int.parse(_porcionesController.text),
-        margenPct: _margenSeleccionado.toString(),
+        margenPct: '30.0', // Valor por defecto
         ingredientes: validIngredientes.map((i) => IngredienteCreate(
           insumoId: i.insumo!.id,
           cantidadUsada: i.cantidad,
@@ -254,24 +227,24 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEDE8DF),
+                          color: const Color(0xFFFBFBF9),
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFEDE8DF)),
                         ),
-                        child: const Column(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('TIEMPO EST.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: Color(0xFF718096))),
-                            SizedBox(height: 8),
+                            const Text('TIEMPO EST.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: Color(0xFF718096))),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
-                                Text('—', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF2D3748))),
-                                SizedBox(width: 4),
-                                Text('min', style: TextStyle(fontSize: 14, color: Color(0xFF718096))),
+                                Text('${_getTotalTime()}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF2D3748))),
+                                const SizedBox(width: 4),
+                                const Text('min', style: TextStyle(fontSize: 14, color: Color(0xFF718096))),
                               ],
                             ),
                           ],
@@ -366,48 +339,6 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
               ),
             ),
 
-            // ── GASTOS OCULTOS ──
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: GastosOcultosWidget(
-                  onGastosChanged: (empaqueActivo, empaqueValor, gasLuzActivo, gasLuzPorcentaje) {
-                    setState(() {
-                      _empaqueActivo = empaqueActivo;
-                      _empaqueValor = empaqueValor;
-                      _gasLuzActivo = gasLuzActivo;
-                      _gasLuzPorcentaje = gasLuzPorcentaje;
-                    });
-                  },
-                ),
-              ),
-            ),
-
-            // ── MARGEN ──
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: MargenSliderWidget(
-                  margen: _margenSeleccionado,
-                  costoPorPorcion: _getCalculatedCostoPorPorcion(),
-                  onChanged: (val) => setState(() => _margenSeleccionado = val),
-                ),
-              ),
-            ),
-
-            // ── DONA ──
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              sliver: SliverToBoxAdapter(
-                child: DonaChartWidget(
-                  costoInsumos: _getSubtotalIngredientes(),
-                  costoEmpaque: _empaqueActivo ? _empaqueValor : 0.0,
-                  costoEnergia: _gasLuzActivo ? (_getSubtotalIngredientes() * _gasLuzPorcentaje / 100) : 0.0,
-                  precioVenta: _getCalculatedCostoPorPorcion() * (1 + _margenSeleccionado / 100),
-                ),
-              ),
-            ),
-
             // ── PREPARACIÓN ──
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
@@ -485,16 +416,6 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
             const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
           ],
         ),
-      ),
-      // Barra de costeo flotante sutil (no bloquea el botón Figma)
-      bottomSheet: CosteoBarWidget(
-        ingredientes: _ingredientes,
-        porciones: int.tryParse(_porcionesController.text) ?? 0,
-        insumosDisponibles: insumosAsync.value ?? [],
-        extraEmpaque: _empaqueActivo ? _empaqueValor : 0.0,
-        extraGasLuzPct: _gasLuzActivo ? _gasLuzPorcentaje : 0.0,
-        isSaving: _isSaving,
-        onSave: _saveReceta,
       ),
     );
   }
@@ -661,8 +582,42 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Row(
               children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE8DF).withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.timer_outlined, size: 14, color: Color(0xFF718096)),
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 30,
+                        child: TextFormField(
+                          initialValue: data.duracionSegundos != null ? (data.duracionSegundos! ~/ 60).toString() : '',
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF795918)),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                            border: InputBorder.none,
+                            hintText: '0',
+                          ),
+                          onChanged: (v) {
+                            setState(() {
+                              data.duracionSegundos = int.tryParse(v) != null ? int.parse(v) * 60 : null;
+                            });
+                          },
+                        ),
+                      ),
+                      const Text('min', style: TextStyle(fontSize: 10, color: Color(0xFF718096))),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
                 Text(
-                  'PASO CRÍTICO',
+                  'CRÍTICO',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -670,7 +625,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                     color: data.esCritico ? Colors.red : const Color(0xFFB8872A),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 Switch(
                   value: data.esCritico,
                   activeColor: Colors.red.shade400,

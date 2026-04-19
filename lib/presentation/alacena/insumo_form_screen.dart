@@ -176,8 +176,13 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
               _buildFieldLabel('PRECIO DE COMPRA'),
               const SizedBox(height: 8),
               _buildTextField(_precioController, '0.00', isNumeric: true, prefix: '\$ '),
+              const SizedBox(height: 4),
+              const Text(
+                'Precio total pagado por el empaque/paquete completo.',
+                style: TextStyle(fontSize: 10, color: Color(0xFF718096)),
+              ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
               
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _save,

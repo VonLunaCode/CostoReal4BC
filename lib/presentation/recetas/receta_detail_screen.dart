@@ -3,7 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
+import '../../data/api_generated/openapi.enums.swagger.dart' as enums;
+import '../../data/api_provider.dart';
 import './recetas_providers.dart';
+import './widgets/gastos_ocultos_widget.dart';
+import './widgets/margen_slider_widget.dart';
+import './widgets/dona_chart_widget.dart';
 
 class RecetaDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -14,7 +19,12 @@ class RecetaDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
-  double _margen = 50.0;
+  double _margen = 30.0;
+  bool _empaqueActivo = false;
+  double _empaqueValor = 0.0;
+  bool _gasLuzActivo = false;
+  double _gasLuzPorcentaje = 0.0;
+  bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,20 +50,16 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
           ),
         ),
         data: (receta) {
-          // Calcular costo localmente desde los ingredientes (costoCalculado del
-          // backend puede llegar nulo o en cero para recetas recién creadas).
-          double costoLocal = 0.0;
-          for (final ing in receta.ingredientes) {
-            final precio    = double.tryParse(ing.insumo.precioCompra.toString())     ?? 0.0;
-            final cantComp  = double.tryParse(ing.insumo.cantidadComprada.toString()) ?? 1.0;
-            final cantUsada = double.tryParse(ing.cantidadUsada.toString())           ?? 0.0;
-            if (cantComp > 0) costoLocal += (precio / cantComp) * cantUsada;
-          }
-          // Fallback a costoCalculado si no hay ingredientes detallados.
-          final costoTotal = costoLocal > 0
-              ? costoLocal
-              : (double.tryParse(receta.costoCalculado ?? '0') ?? 0.0);
-          final costoPorPorcion = receta.porciones > 0 ? costoTotal / receta.porciones : 0.0;
+          final costoLocal = _calcularCostoInsumos(receta);
+          
+          final costoEmpaqueTotal = _empaqueActivo ? _empaqueValor : 0.0;
+          final costoEnergiaTotal = _gasLuzActivo ? (costoLocal * _gasLuzPorcentaje / 100) : 0.0;
+          
+          final costoSubtotalPorUnidad = receta.porciones > 0 ? costoLocal / receta.porciones : 0.0;
+          // Asumir que empaque y energía son totales
+          final costoTotalGeneral = costoLocal + costoEmpaqueTotal + costoEnergiaTotal;
+          final costoPorPorcion = receta.porciones > 0 ? costoTotalGeneral / receta.porciones : 0.0;
+          
           final precioVenta = costoPorPorcion * (1 + _margen / 100);
 
           return CustomScrollView(
@@ -123,20 +129,68 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
 
-                    // ── GRÁFICA DE DONA ──
-                    _buildDonaCard(costoPorPorcion, precioVenta, formatter),
+                    // ── SIMULADOR BENTO ──
+                    const Text('SIMULADOR DE COSTEO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFB8872A), letterSpacing: 2)),
+                    const SizedBox(height: 16),
+
+                    MargenSliderWidget(
+                      margen: _margen,
+                      costoPorPorcion: costoPorPorcion,
+                      onChanged: (val) => setState(() => _margen = val),
+                    ),
+                    const SizedBox(height: 16),
+
+                    GastosOcultosWidget(
+                      onGastosChanged: (emp, empVal, gas, gasPct) {
+                        setState(() {
+                          _empaqueActivo = emp;
+                          _empaqueValor = empVal;
+                          _gasLuzActivo = gas;
+                          _gasLuzPorcentaje = gasPct;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── PRECIO DE VENTA SUGERIDO ──
+                    _buildSuggestedPriceCard(precioVenta, costoPorPorcion, formatter),
+                    const SizedBox(height: 20),
+
+                    // ── DONA CHART ──
+                    DonaChartWidget(
+                      costoInsumos: costoLocal,
+                      costoEmpaque: costoEmpaqueTotal,
+                      costoEnergia: costoEnergiaTotal,
+                      precioVenta: precioVenta,
+                    ),
                     const SizedBox(height: 20),
 
                     // ── INGREDIENTES CLAVE ──
                     _buildIngredientesCard(receta, formatter),
                     const SizedBox(height: 20),
 
-                    // ── SIMULADOR DE COSTEO ──
-                    _buildSimuladorCard(costoPorPorcion, precioVenta, formatter),
-                    const SizedBox(height: 20),
-
                     // ── PREPARACIÓN ──
                     _buildPreparacionCard(receta.pasos),
+                    const SizedBox(height: 32),
+
+                    // ── BOTÓN GUARDAR SIMULACIÓN ──
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: _isSaving ? null : () => _guardarSimulacion(receta),
+                        icon: _isSaving ? const SizedBox.shrink() : const Icon(Icons.save_outlined),
+                        label: _isSaving 
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Guardar Simulación', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7A6330),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 100),
                   ]),
                 ),
@@ -148,87 +202,81 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
     );
   }
 
-  Widget _buildDonaCard(double costoPorPorcion, double precioVenta, NumberFormat formatter) {
-    final ganancia = precioVenta - costoPorPorcion;
+  double _calcularCostoInsumos(RecetaResponse receta) {
+    double costo = 0.0;
+    for (final ing in receta.ingredientes) {
+      final precio = double.tryParse(ing.insumo.precioCompra.toString()) ?? 0.0;
+      final cantComp = double.tryParse(ing.insumo.cantidadComprada.toString()) ?? 1.0;
+      final cantUsada = double.tryParse(ing.cantidadUsada.toString()) ?? 0.0;
+      if (cantComp > 0) costo += (precio / cantComp) * cantUsada;
+    }
+    return costo > 0 ? costo : (double.tryParse(receta.costoCalculado ?? '0') ?? 0.0);
+  }
 
+  Future<void> _guardarSimulacion(RecetaResponse receta) async {
+    setState(() => _isSaving = true);
+    try {
+      final api = ref.read(apiProvider);
+      
+      // Enviar empaque
+      await api.apiV1RecetasIdGastosOcultosPost(
+        id: receta.id,
+        body: GastoOcultoCreate(
+          tipo: enums.GastoOcultoCreateTipo.empaque,
+          valor: _empaqueValor.toString(),
+          esPorcentaje: false,
+          activo: _empaqueActivo,
+        ),
+      );
+
+      // Enviar gas/luz
+      await api.apiV1RecetasIdGastosOcultosPost(
+        id: receta.id,
+        body: GastoOcultoCreate(
+          tipo: enums.GastoOcultoCreateTipo.gasLuz,
+          valor: _gasLuzPorcentaje.toString(),
+          esPorcentaje: true,
+          activo: _gasLuzActivo,
+        ),
+      );
+
+      // (Opcional) Si quieres actualizar también el margen al backend,
+      // necesitarías otro endpoint para actualizar margen de la receta.
+      // O puedes intentar un PATCH general a la receta en un futuro.
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Simulación guardada con éxito'), backgroundColor: Color(0xFF6A9B7A)));
+        ref.invalidate(recetaDetailProvider(widget.id));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Widget _buildSuggestedPriceCard(double precioVenta, double costoPorPorcion, NumberFormat formatter) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        color: const Color(0xFFFBFBF9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDE8DF)),
       ),
       child: Column(
         children: [
-          SizedBox(
-            height: 220,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 60,
-                    sections: [
-                      PieChartSectionData(
-                        color: const Color(0xFF4A7C6F), // Verde (utilidad)
-                        value: ganancia > 0 ? ganancia : 0.01,
-                        title: '',
-                        radius: 40,
-                      ),
-                      PieChartSectionData(
-                        color: const Color(0xFFB8872A), // Dorado (insumos)
-                        value: costoPorPorcion * 0.7,
-                        title: '',
-                        radius: 40,
-                      ),
-                      PieChartSectionData(
-                        color: const Color(0xFF2D3748), // Oscuro (labor)
-                        value: costoPorPorcion * 0.3,
-                        title: '',
-                        radius: 40,
-                      ),
-                    ],
-                  ),
-                  swapAnimationDuration: const Duration(milliseconds: 400),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('VENTA FINAL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFF718096))),
-                    const SizedBox(height: 4),
-                    Text(
-                      formatter.format(precioVenta),
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF2D3748)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          const Text('PRECIO SUGERIDO DE VENTA', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFFA0AEC0))),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _legendDot(const Color(0xFFB8872A), 'INSUMOS'),
-              const SizedBox(width: 16),
-              _legendDot(const Color(0xFF2D3748), 'LABOR'),
-              const SizedBox(width: 16),
-              _legendDot(const Color(0xFF4A7C6F), 'UTILIDAD'),
-            ],
-          ),
+          Text(formatter.format(precioVenta), style: const TextStyle(fontSize: 48, fontFamily: 'Georgia', fontWeight: FontWeight.bold, color: Color(0xFF7A6330))),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(color: const Color(0xFFEAE8E1), borderRadius: BorderRadius.circular(20)),
+            child: Text('Basado en margen del ${_margen.toInt()}%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF718096))),
+          )
         ],
       ),
-    );
-  }
-
-  Widget _legendDot(Color color, String label) {
-    return Row(
-      children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF718096), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-      ],
     );
   }
 
@@ -277,100 +325,6 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
               ),
             );
           }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimuladorCard(double costoPorPorcion, double precioVenta, NumberFormat formatter) {
-    final ganancia = precioVenta - costoPorPorcion;
-    final esPerdida = precioVenta < costoPorPorcion && costoPorPorcion > 0;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F5EE),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Simulador de Costeo',
-            style: TextStyle(
-              fontFamily: 'Georgia',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFB8872A),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('MARGEN DE GANANCIA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1, color: Color(0xFF718096))),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(color: const Color(0xFFB8872A), borderRadius: BorderRadius.circular(20)),
-                child: Text('${_margen.toInt()}%', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: const Color(0xFFB8872A),
-              inactiveTrackColor: const Color(0xFFE9DCC8),
-              thumbColor: const Color(0xFFB8872A),
-              overlayColor: const Color(0xFFB8872A).withOpacity(0.2),
-            ),
-            child: Slider(
-              value: _margen,
-              min: 0,
-              max: 200,
-              divisions: 200,
-              onChanged: (val) => setState(() => _margen = val),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                Text('30%', style: TextStyle(fontSize: 10, color: Color(0xFFA0AEC0))),
-                Text('50%', style: TextStyle(fontSize: 10, color: Color(0xFFA0AEC0))),
-                Text('100%', style: TextStyle(fontSize: 10, color: Color(0xFFA0AEC0))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Ganancia neta', style: TextStyle(fontSize: 11, color: Color(0xFF718096))),
-                Text(formatter.format(ganancia), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: esPerdida ? Colors.red : const Color(0xFF2D8A52))),
-              ]),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                const Text('Precio de venta', style: TextStyle(fontSize: 11, color: Color(0xFF718096))),
-                Text(formatter.format(precioVenta), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFFB8872A))),
-              ]),
-            ],
-          ),
-          if (esPerdida)
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12)),
-              child: const Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 18),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text('⚠️ Precio de venta a pérdida — revisa tu costeo', style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

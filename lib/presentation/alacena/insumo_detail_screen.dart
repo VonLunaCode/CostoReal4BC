@@ -69,6 +69,11 @@ class InsumoDetailScreen extends ConsumerWidget {
           final cantActual = double.tryParse(insumo.cantidadActual) ?? 0.0;
           final alertaMin = double.tryParse(insumo.alertaMinimo ?? '0') ?? 0.0;
           final isCritico = cantActual <= alertaMin;
+          
+          final displayCantActual = cantActual == cantActual.toInt() ? cantActual.toInt().toString() : cantActual.toString();
+          
+          final double? priceNum = double.tryParse(insumo.precioCompra);
+          final displayPrecio = priceNum != null && priceNum == priceNum.toInt() ? priceNum.toInt().toString() : insumo.precioCompra;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -96,7 +101,7 @@ class InsumoDetailScreen extends ConsumerWidget {
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text(
-                            insumo.cantidadActual,
+                            displayCantActual,
                             style: const TextStyle(
                               fontSize: 64,
                               fontFamily: 'serif',
@@ -134,7 +139,7 @@ class InsumoDetailScreen extends ConsumerWidget {
                     Expanded(
                       child: _InfoCard(
                         label: 'PRECIO COMPRA',
-                        value: '\$${insumo.precioCompra}',
+                        value: '\$$displayPrecio',
                         icon: Icons.payments_outlined,
                       ),
                     ),
