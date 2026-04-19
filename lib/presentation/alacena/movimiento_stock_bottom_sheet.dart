@@ -131,7 +131,7 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
                 borderRadius: BorderRadius.circular(12),
                 constraints: BoxConstraints(minWidth: (MediaQuery.of(context).size.width - 64) / 2, minHeight: 48),
                 selectedColor: Colors.white,
-                fillColor: const Color(0xFFBC985D),
+                fillColor: const Color(0xFFC29F5C),
                 children: const [
                   Text('ENTRADA', style: TextStyle(fontWeight: FontWeight.bold)),
                   Text('SALIDA', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -212,7 +212,7 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
                           const Text('NUEVO', style: TextStyle(fontSize: 8, color: Color(0xFF718096))),
                           Text(
                             '${_nuevaCantidad.toStringAsFixed(1)} ${widget.insumo.unidad.value}', 
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFBC985D))
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC29F5C))
                           ),
                         ],
                       ),
@@ -231,7 +231,7 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
             ElevatedButton(
               onPressed: _isLoading ? null : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBC985D),
+                backgroundColor: const Color(0xFFC29F5C),
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(54),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

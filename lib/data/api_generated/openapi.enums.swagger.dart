@@ -1,6 +1,34 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:collection/collection.dart';
 
+enum GastoOcultoCreateTipo {
+  @JsonValue(null)
+  swaggerGeneratedUnknown(null),
+
+  @JsonValue('empaque')
+  empaque('empaque'),
+  @JsonValue('gas_luz')
+  gasLuz('gas_luz');
+
+  final String? value;
+
+  const GastoOcultoCreateTipo(this.value);
+}
+
+enum GastoOcultoResponseTipo {
+  @JsonValue(null)
+  swaggerGeneratedUnknown(null),
+
+  @JsonValue('empaque')
+  empaque('empaque'),
+  @JsonValue('gas_luz')
+  gasLuz('gas_luz');
+
+  final String? value;
+
+  const GastoOcultoResponseTipo(this.value);
+}
+
 enum InsumoCreateUnidad {
   @JsonValue(null)
   swaggerGeneratedUnknown(null),
@@ -77,4 +105,18 @@ enum MovimientoCreateMotivo {
   final String? value;
 
   const MovimientoCreateMotivo(this.value);
+}
+
+enum ApiV1RecetasIdGastosOcultosTipoTogglePatchTipo {
+  @JsonValue(null)
+  swaggerGeneratedUnknown(null),
+
+  @JsonValue('empaque')
+  empaque('empaque'),
+  @JsonValue('gas_luz')
+  gasLuz('gas_luz');
+
+  final String? value;
+
+  const ApiV1RecetasIdGastosOcultosTipoTogglePatchTipo(this.value);
 }

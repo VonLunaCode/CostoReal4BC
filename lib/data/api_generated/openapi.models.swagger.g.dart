@@ -29,6 +29,41 @@ Map<String, dynamic> _$BodyLoginForAccessTokenApiV1AuthLoginPostToJson(
       'client_secret': instance.clientSecret,
     };
 
+GastoOcultoCreate _$GastoOcultoCreateFromJson(Map<String, dynamic> json) =>
+    GastoOcultoCreate(
+      tipo: gastoOcultoCreateTipoFromJson(json['tipo']),
+      valor: json['valor'],
+      esPorcentaje: json['es_porcentaje'] as bool,
+      activo: json['activo'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$GastoOcultoCreateToJson(GastoOcultoCreate instance) =>
+    <String, dynamic>{
+      'tipo': gastoOcultoCreateTipoToJson(instance.tipo),
+      'valor': instance.valor,
+      'es_porcentaje': instance.esPorcentaje,
+      'activo': instance.activo,
+    };
+
+GastoOcultoResponse _$GastoOcultoResponseFromJson(Map<String, dynamic> json) =>
+    GastoOcultoResponse(
+      tipo: gastoOcultoResponseTipoFromJson(json['tipo']),
+      valor: json['valor'] as String,
+      esPorcentaje: json['es_porcentaje'] as bool,
+      activo: json['activo'] as bool? ?? false,
+      id: json['id'] as String,
+    );
+
+Map<String, dynamic> _$GastoOcultoResponseToJson(
+        GastoOcultoResponse instance) =>
+    <String, dynamic>{
+      'tipo': gastoOcultoResponseTipoToJson(instance.tipo),
+      'valor': instance.valor,
+      'es_porcentaje': instance.esPorcentaje,
+      'activo': instance.activo,
+      'id': instance.id,
+    };
+
 HTTPValidationError _$HTTPValidationErrorFromJson(Map<String, dynamic> json) =>
     HTTPValidationError(
       detail: (json['detail'] as List<dynamic>?)
@@ -41,6 +76,37 @@ Map<String, dynamic> _$HTTPValidationErrorToJson(
         HTTPValidationError instance) =>
     <String, dynamic>{
       'detail': instance.detail?.map((e) => e.toJson()).toList(),
+    };
+
+IngredienteCreate _$IngredienteCreateFromJson(Map<String, dynamic> json) =>
+    IngredienteCreate(
+      insumoId: json['insumo_id'] as String,
+      cantidadUsada: json['cantidad_usada'],
+      unidad: json['unidad'] as String,
+    );
+
+Map<String, dynamic> _$IngredienteCreateToJson(IngredienteCreate instance) =>
+    <String, dynamic>{
+      'insumo_id': instance.insumoId,
+      'cantidad_usada': instance.cantidadUsada,
+      'unidad': instance.unidad,
+    };
+
+IngredienteResponse _$IngredienteResponseFromJson(Map<String, dynamic> json) =>
+    IngredienteResponse(
+      id: json['id'] as String,
+      insumo: InsumoResponse.fromJson(json['insumo'] as Map<String, dynamic>),
+      cantidadUsada: json['cantidad_usada'] as String,
+      unidad: json['unidad'] as String,
+    );
+
+Map<String, dynamic> _$IngredienteResponseToJson(
+        IngredienteResponse instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'insumo': instance.insumo.toJson(),
+      'cantidad_usada': instance.cantidadUsada,
+      'unidad': instance.unidad,
     };
 
 InsumoCreate _$InsumoCreateFromJson(Map<String, dynamic> json) => InsumoCreate(
@@ -117,6 +183,124 @@ Map<String, dynamic> _$MovimientoCreateToJson(MovimientoCreate instance) =>
       'tipo': movimientoCreateTipoToJson(instance.tipo),
       'cantidad': instance.cantidad,
       'motivo': movimientoCreateMotivoToJson(instance.motivo),
+    };
+
+PasoCreate _$PasoCreateFromJson(Map<String, dynamic> json) => PasoCreate(
+      orden: (json['orden'] as num).toInt(),
+      descripcion: json['descripcion'] as String,
+      duracionSegundos: json['duracion_segundos'],
+      esCritico: json['es_critico'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$PasoCreateToJson(PasoCreate instance) =>
+    <String, dynamic>{
+      'orden': instance.orden,
+      'descripcion': instance.descripcion,
+      'duracion_segundos': instance.duracionSegundos,
+      'es_critico': instance.esCritico,
+    };
+
+PasoResponse _$PasoResponseFromJson(Map<String, dynamic> json) => PasoResponse(
+      orden: (json['orden'] as num).toInt(),
+      descripcion: json['descripcion'] as String,
+      duracionSegundos: json['duracion_segundos'],
+      esCritico: json['es_critico'] as bool? ?? false,
+      id: json['id'] as String,
+    );
+
+Map<String, dynamic> _$PasoResponseToJson(PasoResponse instance) =>
+    <String, dynamic>{
+      'orden': instance.orden,
+      'descripcion': instance.descripcion,
+      'duracion_segundos': instance.duracionSegundos,
+      'es_critico': instance.esCritico,
+      'id': instance.id,
+    };
+
+RecetaCreate _$RecetaCreateFromJson(Map<String, dynamic> json) => RecetaCreate(
+      nombre: json['nombre'] as String,
+      porciones: (json['porciones'] as num).toInt(),
+      margenPct: json['margen_pct'],
+      ingredientes: (json['ingredientes'] as List<dynamic>?)
+              ?.map(
+                  (e) => IngredienteCreate.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      pasos: (json['pasos'] as List<dynamic>?)
+              ?.map((e) => PasoCreate.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+
+Map<String, dynamic> _$RecetaCreateToJson(RecetaCreate instance) =>
+    <String, dynamic>{
+      'nombre': instance.nombre,
+      'porciones': instance.porciones,
+      'margen_pct': instance.margenPct,
+      'ingredientes': instance.ingredientes.map((e) => e.toJson()).toList(),
+      'pasos': instance.pasos?.map((e) => e.toJson()).toList(),
+    };
+
+RecetaResponse _$RecetaResponseFromJson(Map<String, dynamic> json) =>
+    RecetaResponse(
+      id: json['id'] as String,
+      usuarioId: json['usuario_id'] as String,
+      nombre: json['nombre'] as String,
+      porciones: (json['porciones'] as num).toInt(),
+      margenPct: json['margen_pct'] as String,
+      activa: json['activa'] as bool,
+      ingredientes: (json['ingredientes'] as List<dynamic>?)
+              ?.map((e) =>
+                  IngredienteResponse.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      pasos: (json['pasos'] as List<dynamic>?)
+              ?.map((e) => PasoResponse.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      gastosOcultos: (json['gastos_ocultos'] as List<dynamic>?)
+              ?.map((e) =>
+                  GastoOcultoResponse.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      costoCalculado: json['costo_calculado'],
+    );
+
+Map<String, dynamic> _$RecetaResponseToJson(RecetaResponse instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'usuario_id': instance.usuarioId,
+      'nombre': instance.nombre,
+      'porciones': instance.porciones,
+      'margen_pct': instance.margenPct,
+      'activa': instance.activa,
+      'ingredientes': instance.ingredientes.map((e) => e.toJson()).toList(),
+      'pasos': instance.pasos.map((e) => e.toJson()).toList(),
+      'gastos_ocultos': instance.gastosOcultos.map((e) => e.toJson()).toList(),
+      'costo_calculado': instance.costoCalculado,
+    };
+
+RecetaUpdate _$RecetaUpdateFromJson(Map<String, dynamic> json) => RecetaUpdate(
+      nombre: json['nombre'],
+      porciones: json['porciones'],
+      margenPct: json['margen_pct'],
+    );
+
+Map<String, dynamic> _$RecetaUpdateToJson(RecetaUpdate instance) =>
+    <String, dynamic>{
+      'nombre': instance.nombre,
+      'porciones': instance.porciones,
+      'margen_pct': instance.margenPct,
+    };
+
+ToggleGastoRequest _$ToggleGastoRequestFromJson(Map<String, dynamic> json) =>
+    ToggleGastoRequest(
+      activo: json['activo'] as bool,
+    );
+
+Map<String, dynamic> _$ToggleGastoRequestToJson(ToggleGastoRequest instance) =>
+    <String, dynamic>{
+      'activo': instance.activo,
     };
 
 Token _$TokenFromJson(Map<String, dynamic> json) => Token(

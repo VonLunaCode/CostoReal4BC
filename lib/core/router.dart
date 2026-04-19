@@ -8,6 +8,9 @@ import '../presentation/screens/register_screen.dart';
 import '../presentation/alacena/alacena_screen.dart';
 import '../presentation/alacena/insumo_form_screen.dart';
 import '../presentation/alacena/insumo_detail_screen.dart';
+import '../presentation/recetas/recetas_list_screen.dart';
+import '../presentation/recetas/receta_detail_screen.dart';
+import '../presentation/recetas/receta_form_screen.dart';
 import '../data/api_generated/openapi.models.swagger.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -49,6 +52,23 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
                   return InsumoDetailScreen(insumoId: id);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'recetas',
+            builder: (context, state) => const RecetasListScreen(),
+            routes: [
+              GoRoute(
+                path: 'crear',
+                builder: (context, state) => const RecetaFormScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return RecetaDetailScreen(id: id);
                 },
               ),
             ],

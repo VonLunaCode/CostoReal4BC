@@ -51,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
               title: 'Mis Recetas',
               subtitle: 'Costea y planifica tu menú',
               icon: Icons.restaurant_menu,
-              onTap: () {},
+              onTap: () => context.push('/recetas'),
             ),
             const SizedBox(height: 16),
             _buildMainCard(
@@ -66,6 +66,11 @@ class HomeScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
+        onTap: (index) {
+          if (index == 1) context.go('/alacena');
+          if (index == 2) context.push('/recetas');
+          if (index == 3) context.push('/perfil');
+        },
         selectedItemColor: const Color(0xFFBC985D),
         unselectedItemColor: const Color(0xFF718096),
         type: BottomNavigationBarType.fixed,
@@ -73,7 +78,7 @@ class HomeScreen extends ConsumerWidget {
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Alacena'),
           BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Recetas'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
       ),
     );

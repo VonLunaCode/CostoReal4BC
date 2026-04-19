@@ -143,6 +143,115 @@ final class _$Openapi extends Openapi {
   }
 
   @override
+  Future<Response<List<RecetaResponse>>> _apiV1RecetasGet() {
+    final Uri $url = Uri.parse('/api/v1/recetas/');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<List<RecetaResponse>, RecetaResponse>($request);
+  }
+
+  @override
+  Future<Response<RecetaResponse>> _apiV1RecetasPost(
+      {required RecetaCreate? body}) {
+    final Uri $url = Uri.parse('/api/v1/recetas/');
+    final $body = body;
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<RecetaResponse, RecetaResponse>($request);
+  }
+
+  @override
+  Future<Response<RecetaResponse>> _apiV1RecetasIdGet({required String? id}) {
+    final Uri $url = Uri.parse('/api/v1/recetas/${id}');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<RecetaResponse, RecetaResponse>($request);
+  }
+
+  @override
+  Future<Response<RecetaResponse>> _apiV1RecetasIdPut({
+    required String? id,
+    required RecetaUpdate? body,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/recetas/${id}');
+    final $body = body;
+    final Request $request = Request(
+      'PUT',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<RecetaResponse, RecetaResponse>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> _apiV1RecetasIdDelete({required String? id}) {
+    final Uri $url = Uri.parse('/api/v1/recetas/${id}');
+    final Request $request = Request(
+      'DELETE',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<dynamic, dynamic>($request);
+  }
+
+  @override
+  Future<Response<Object>> _apiV1RecetasIdCosteoGet({required String? id}) {
+    final Uri $url = Uri.parse('/api/v1/recetas/${id}/costeo');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<Object, Object>($request);
+  }
+
+  @override
+  Future<Response<GastoOcultoResponse>> _apiV1RecetasIdGastosOcultosPost({
+    required String? id,
+    required GastoOcultoCreate? body,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/recetas/${id}/gastos-ocultos');
+    final $body = body;
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<GastoOcultoResponse, GastoOcultoResponse>($request);
+  }
+
+  @override
+  Future<Response<GastoOcultoResponse>>
+      _apiV1RecetasIdGastosOcultosTipoTogglePatch({
+    required String? id,
+    required String? tipo,
+    required ToggleGastoRequest? body,
+  }) {
+    final Uri $url =
+        Uri.parse('/api/v1/recetas/${id}/gastos-ocultos/${tipo}/toggle');
+    final $body = body;
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<GastoOcultoResponse, GastoOcultoResponse>($request);
+  }
+
+  @override
   Future<Response<dynamic>> _get() {
     final Uri $url = Uri.parse('/');
     final Request $request = Request(

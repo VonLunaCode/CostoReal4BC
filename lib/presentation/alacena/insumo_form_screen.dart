@@ -116,7 +116,7 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFA),
+      backgroundColor: const Color(0xFFFBF9F4),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -186,7 +186,7 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
                     ? const CircularProgressIndicator(color: Colors.white) 
                     : Text(_isEditing ? 'Guardar Cambios' : 'Guardar Insumo'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6D9773), // Verde de Figma
+                  backgroundColor: const Color(0xFF6B9478), // Verde de Figma corregido
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(56),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

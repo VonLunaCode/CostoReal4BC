@@ -30,7 +30,7 @@ class AlacenaScreen extends ConsumerWidget {
     final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      backgroundColor: const Color(0xFFFBF9F4), 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -140,14 +140,14 @@ class AlacenaScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 if (criticos.isNotEmpty || desactualizados.isNotEmpty) ...[
-                  _SectionHeader(title: 'ATENCIÓN NECESARIA', color: const Color(0xFF718096)),
+                  const _SectionHeader(title: 'ATENCIÓN NECESARIA', color: Color(0xFF718096)),
                   const SizedBox(height: 12),
                   ...criticos.map((i) => _InsumoCard(insumo: i, type: _CardType.critical)),
                   ...desactualizados.map((i) => _InsumoCard(insumo: i, type: _CardType.warning)),
                   const SizedBox(height: 24),
                 ],
 
-                _SectionHeader(title: 'INSUMOS EN ALACENA', color: const Color(0xFF718096)),
+                const _SectionHeader(title: 'INSUMOS EN ALACENA', color: Color(0xFF718096)),
                 const SizedBox(height: 12),
                 if (regulares.isEmpty && criticos.isEmpty && desactualizados.isEmpty)
                    const Padding(
@@ -163,7 +163,7 @@ class AlacenaScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/alacena/crear'),
-        backgroundColor: const Color(0xFFBC985D),
+        backgroundColor: const Color(0xFFC29F5C),
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
@@ -201,46 +201,24 @@ class _InsumoCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final Color accentColor;
-    final Color bgColor;
-    final IconData iconData;
-    final String? badgeText;
-
-    switch (type) {
-      case _CardType.critical:
-        accentColor = const Color(0xFFDC2626);
-        bgColor = const Color(0xFFFEE2E2);
-        iconData = Icons.inventory_2;
-        badgeText = 'STOCK BAJO';
-        break;
-      case _CardType.warning:
-        accentColor = const Color(0xFFD97706);
-        bgColor = const Color(0xFFFEF3C7);
-        iconData = Icons.warning_amber;
-        badgeText = 'PRECIO VIEJO';
-        break;
-      case _CardType.normal:
-        accentColor = const Color(0xFFBC985D);
-        bgColor = const Color(0xFFF3F4F6);
-        iconData = Icons.inventory_2_outlined;
-        badgeText = null;
-    }
-
-    // Calcular tiempo relativo simple
+    // Determinar qué alertas tiene el insumo
     final now = DateTime.now();
-    final diff = now.difference(insumo.fechaUltimoPrecio).inDays;
-    final timeStr = diff == 0 ? 'Hoy' : 'Hace $diff d';
+    final cantActual = double.tryParse(insumo.cantidadActual) ?? 0.0;
+    final alertaMin = double.tryParse(insumo.alertaMinimo ?? '0') ?? 0.0;
+    
+    final isStockBajo = cantActual <= alertaMin;
+    final isPrecioViejo = now.difference(insumo.fechaUltimoPrecio).inDays > 30;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF4A4A4A).withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -254,124 +232,123 @@ class _InsumoCard extends ConsumerWidget {
             onMovimientoRegistrado: () => ref.invalidate(alacenaProvider),
           ),
           borderRadius: BorderRadius.circular(16),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (type == _CardType.critical)
-                  Container(
-                    width: 6,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFDC2626),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        bottomLeft: Radius.circular(16),
+                if (isStockBajo || isPrecioViejo) ...[
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (isStockBajo)
+                        const _AlertBadge(
+                          label: 'STOCK BAJO',
+                          icon: Icons.inventory_2,
+                          color: Color(0xFFDC2626),
+                          bgColor: Color(0xFFFEE2E2),
+                        ),
+                      if (isPrecioViejo)
+                        const _AlertBadge(
+                          label: 'PRECIO DESACTUALIZADO',
+                          icon: Icons.warning_amber,
+                          color: Color(0xFFD97706),
+                          bgColor: Color(0xFFFEF3C7),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                
+                Row(
+                  children: [
+                    // Imagen / Icono de Insumo
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F7F7),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.inventory_2_outlined, color: Color(0xFFBC985D), size: 30),
                       ),
                     ),
-                  ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        // Icono Izquierdo
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(iconData, color: accentColor, size: 24),
-                        ),
-                        const SizedBox(width: 16),
-                        // Información Central
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                insumo.nombre,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Color(0xFF2D3748),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Text(
-                                    '${insumo.cantidadActual} ${insumo.unidad.value}',
-                                    style: const TextStyle(
-                                      color: Color(0xFF718096),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '•',
-                                    style: TextStyle(
-                                      color: const Color(0xFF718096).withOpacity(0.5),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '\$${insumo.precioCompra}',
-                                    style: const TextStyle(
-                                      color: Color(0xFFBC985D),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Badge / Info Derecha
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (badgeText != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: bgColor,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  badgeText,
-                                  style: TextStyle(
-                                    color: accentColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(height: 4),
-                            Text(
-                              timeStr,
-                              style: const TextStyle(
-                                color: Color(0xFFA0AEC0),
-                                fontSize: 12,
-                              ),
+                    const SizedBox(width: 16),
+                    // Información
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            insumo.nombre,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                              color: Color(0xFF1E1E1E),
+                              fontFamily: 'serif',
                             ),
-                          ],
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.chevron_right, color: Color(0xFFCBD5E0)),
-                      ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${insumo.cantidadActual}${insumo.unidad.value} restantes',
+                            style: const TextStyle(
+                              color: Color(0xFF718096),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                    const Icon(Icons.chevron_right, color: Color(0xFFCBD5E0)),
+                  ],
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AlertBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+
+  const _AlertBadge({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -389,10 +366,30 @@ class _BottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _NavItem(icon: Icons.assignment_outlined, label: 'Pedidos', isActive: false),
-          _NavItem(icon: Icons.restaurant_menu, label: 'Recetas', isActive: false),
-          _NavItem(icon: Icons.inventory_2, label: 'Alacena', isActive: true),
-          _NavItem(icon: Icons.person_outline, label: 'Perfil', isActive: false),
+          _NavItem(
+            icon: Icons.assignment_outlined,
+            label: 'Pedidos',
+            isActive: false,
+            onTap: () => context.go('/'),
+          ),
+          _NavItem(
+            icon: Icons.restaurant_menu,
+            label: 'Recetas',
+            isActive: false,
+            onTap: () => context.push('/recetas'),
+          ),
+          _NavItem(
+            icon: Icons.inventory_2,
+            label: 'Alacena',
+            isActive: true,
+            onTap: () {},
+          ),
+          _NavItem(
+            icon: Icons.person_outline,
+            label: 'Perfil',
+            isActive: false,
+            onTap: () => context.push('/perfil'),
+          ),
         ],
       ),
     );
@@ -403,15 +400,14 @@ class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isActive;
-  const _NavItem({required this.icon, required this.label, required this.isActive});
+  final VoidCallback onTap;
+  const _NavItem({required this.icon, required this.label, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? const Color(0xFFBC985D) : const Color(0xFFA0AEC0);
+    final color = isActive ? const Color(0xFFC29F5C) : const Color(0xFFA0AEC0);
     return InkWell(
-      onTap: () {
-        // Navegación pendiente
-      },
+      onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
-import '../../data/api_generated/openapi.enums.swagger.dart';
 import 'alacena_screen.dart';
 import 'movimiento_stock_bottom_sheet.dart';
 
@@ -25,7 +24,7 @@ class InsumoDetailScreen extends ConsumerWidget {
     final insumoAsync = ref.watch(insumoByIdProvider(insumoId));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F7), // Tono crema muy sutil de Figma
+      backgroundColor: const Color(0xFFFBF9F4), 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -216,7 +215,7 @@ class InsumoDetailScreen extends ConsumerWidget {
                     ),
                     TextButton(
                       onPressed: () {},
-                      child: const Text('VER TODO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFBC985D))),
+                      child: const Text('VER TODO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFC29F5C))),
                     ),
                   ],
                 ),
@@ -245,7 +244,7 @@ class InsumoDetailScreen extends ConsumerWidget {
           icon: const Icon(Icons.sync_alt, size: 20),
           label: const Text('REGISTRAR MOVIMIENTO', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFBC985D),
+            backgroundColor: const Color(0xFFC29F5C),
             foregroundColor: Colors.white,
             minimumSize: const Size.fromHeight(54),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
