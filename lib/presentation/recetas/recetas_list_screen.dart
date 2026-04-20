@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
+import '../widgets/kitchy_bottom_nav.dart';
 import './recetas_providers.dart';
 
 class RecetasListScreen extends ConsumerStatefulWidget {
@@ -207,7 +208,8 @@ class _RecetasListScreenState extends ConsumerState<RecetasListScreen> {
         shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
-      bottomNavigationBar: const _BottomNav(),
+      extendBody: true,
+      bottomNavigationBar: const KitchyBottomNav(currentIndex: 1),
     );
   }
 }
@@ -382,55 +384,6 @@ class RecetaCardWidget extends StatelessWidget {
           color: fg,
           letterSpacing: 0.5,
         ),
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  const _BottomNav();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(top: 8, bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _NavItem(icon: Icons.assignment_outlined, label: 'Pedidos', isActive: false, onTap: () => context.go('/')),
-          _NavItem(icon: Icons.restaurant_menu, label: 'Recetas', isActive: true, onTap: () {}),
-          _NavItem(icon: Icons.inventory_2, label: 'Alacena', isActive: false, onTap: () => context.go('/alacena')),
-          _NavItem(icon: Icons.person_outline, label: 'Perfil', isActive: false, onTap: () => context.go('/perfil')),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _NavItem({required this.icon, required this.label, required this.isActive, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? const Color(0xFFC29F5C) : const Color(0xFFA0AEC0);
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
-        ],
       ),
     );
   }

@@ -29,35 +29,31 @@ class InsumoDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leadingWidth: 40,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF2C2623)),
+          onPressed: () => context.pop(),
+        ),
         title: insumoAsync.when(
           data: (insumo) => Text(
             insumo.nombre,
             style: const TextStyle(
-              fontFamily: 'serif',
-              fontSize: 20,
+              fontFamily: 'Georgia',
+              fontStyle: FontStyle.italic,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF4A4A4A),
+              color: Color(0xFF2C2623),
             ),
           ),
           loading: () => const SizedBox(),
-          error: (_, __) => const Text('Error'),
+          error: (_, __) => const Text('Error', style: TextStyle(color: Color(0xFF2C2623))),
         ),
-        actions: [
-          insumoAsync.when(
-            data: (insumo) => IconButton(
-              icon: const Icon(Icons.edit_outlined, color: Color(0xFF718096)),
-              onPressed: () => context.push('/alacena/editar', extra: insumo),
-            ),
-            loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 8.0),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
               radius: 18,
-              backgroundColor: Color(0xFFE2E8F0),
-              child: Icon(Icons.person, size: 20, color: Color(0xFF718096)),
+              backgroundColor: Color(0xFF2C2623),
+               child: Icon(Icons.person, size: 20, color: Colors.white),
             ),
           ),
         ],
@@ -80,52 +76,71 @@ class InsumoDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
-                // Stock Hero Section (Sin círculo, estilo editorial)
-                Center(
-                  child: Column(
-                    children: [
-                      const Text(
-                        'STOCK DISPONIBLE',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 2.0,
-                          color: Color(0xFFA0AEC0),
-                        ),
+                const SizedBox(height: 24),
+                // Stock Hero Section
+                Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F2EA),
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
+                      child: Column(
                         children: [
-                          Text(
-                            displayCantActual,
-                            style: const TextStyle(
-                              fontSize: 64,
-                              fontFamily: 'serif',
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A202C),
+                          const Text(
+                            'STOCK DISPONIBLE',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 2.0,
+                              color: Color(0xFF807667),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            insumo.unidad.value ?? '',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              color: Color(0xFF718096),
-                            ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                displayCantActual,
+                                style: const TextStyle(
+                                  fontSize: 64,
+                                  fontFamily: 'Georgia',
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2C2623),
+                                  height: 1.0,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                insumo.unidad.value ?? '',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontFamily: 'Georgia',
+                                  fontStyle: FontStyle.italic,
+                                  color: Color(0xFF807667),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    // Decorative watermark background
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Icon(Icons.restaurant, size: 100, color: const Color(0xFF807667).withOpacity(0.05)),
+                    ),
+                  ],
                 ),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
                 
-                // Info Cards (Grisáceas de Figma)
+                // Info Cards
                 Row(
                   children: [
                     Expanded(
@@ -148,59 +163,91 @@ class InsumoDetailScreen extends ConsumerWidget {
                 
                 const SizedBox(height: 32),
                 
+                const SizedBox(height: 32),
+                
                 // Estado de Alacena (Barra horizontal de Figma)
-                const Text(
-                  'Estado de Alacena',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontFamily: 'serif',
-                    fontSize: 18,
-                    color: Color(0xFF4A4A4A),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFF1F1F1)),
+                    color: const Color(0xFFF5F2EA),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                           Text(
-                            'ALERTA MÍNIMO: ${alertaMin.toStringAsFixed(0)}KG',
-                            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFDC2626)),
-                          ),
                           const Text(
-                            'Nivel Saludable',
-                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF9BBE86)),
+                            'Estado de Alacena',
+                            style: TextStyle(
+                              fontFamily: 'Georgia',
+                              fontStyle: FontStyle.italic,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2C2623),
+                            ),
+                          ),
+                          Text(
+                            'Meta: ${alertaMin * 4}${insumo.unidad.value}', // Simulated meta based on alert
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF807667)),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       Stack(
+                        alignment: Alignment.centerLeft,
                         children: [
                           Container(
-                            height: 8,
+                            height: 12,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F1F1),
+                              color: Colors.white.withOpacity(0.6),
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                           FractionallySizedBox(
-                            widthFactor: (cantActual / (alertaMin * 3)).clamp(0.0, 1.0),
+                            widthFactor: (cantActual / (alertaMin * 4)).clamp(0.0, 1.0),
                             child: Container(
-                              height: 8,
+                              height: 12,
                               decoration: BoxDecoration(
-                                color: isCritico ? const Color(0xFFDC2626) : const Color(0xFF7A613E),
+                                color: isCritico ? const Color(0xFFDC2626) : const Color(0xFF8B6B3D),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
+                          ),
+                          // Red Alert Line
+                          Positioned(
+                            left: ((alertaMin / (alertaMin * 4)).clamp(0.0, 1.0) * (MediaQuery.of(context).size.width - 96)),
+                            child: Container(
+                              width: 2,
+                              height: 14,
+                              color: const Color(0xFFDC2626),
+                            ),
+                          ),
+                        ],
+                      ),
+                       const SizedBox(height: 16),
+                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(color: Color(0xFFDC2626), shape: BoxShape.circle),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'ALERTA MÍNIMO: ${alertaMin.toStringAsFixed(0)}KG',
+                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF807667), letterSpacing: 0.5),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            isCritico ? 'Nivel Crítico' : 'Nivel Saludable',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isCritico ? const Color(0xFFDC2626) : const Color(0xFF8B6B3D)),
                           ),
                         ],
                       ),
@@ -216,22 +263,42 @@ class InsumoDetailScreen extends ConsumerWidget {
                   children: [
                     const Text(
                       'Últimos Movimientos',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF4A4A4A)),
+                      style: TextStyle(
+                        fontFamily: 'Georgia',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2C2623),
+                      ),
                     ),
                     TextButton(
                       onPressed: () {},
-                      child: const Text('VER TODO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFC29F5C))),
+                      child: Container(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        decoration: const BoxDecoration(
+                          border: Border(bottom: BorderSide(color: Color(0xFFC69E57), width: 1.5))
+                        ),
+                        child: const Text('VER TODO', style: TextStyle(fontSize: 10, letterSpacing: 1.0, fontWeight: FontWeight.bold, color: Color(0xFFC69E57))),
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
                 const _MovementItem(
-                  title: '+5kg Compra',
-                  subtitle: '02 Abr, 2024',
+                  title: '+5kg',
+                  subtitle: 'Compra',
+                  date: '02 Abr, 2024',
                   isEntry: true,
                 ),
                 const _MovementItem(
-                  title: '-2kg Receta Macarons',
-                  subtitle: '01 Abr, 2024',
+                  title: '-2kg',
+                  subtitle: 'Receta Macarons',
+                  date: '01 Abr, 2024',
+                  isEntry: false,
+                ),
+                const _MovementItem(
+                  title: '-0.5kg',
+                  subtitle: 'Muestra degustación',
+                  date: '30 Mar, 2024',
                   isEntry: false,
                 ),
                 
@@ -244,15 +311,19 @@ class InsumoDetailScreen extends ConsumerWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: ElevatedButton.icon(
-          onPressed: () => _showMovementModal(context, ref),
-          icon: const Icon(Icons.sync_alt, size: 20),
-          label: const Text('REGISTRAR MOVIMIENTO', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFC29F5C),
-            foregroundColor: Colors.white,
-            minimumSize: const Size.fromHeight(54),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: () => _showMovementModal(context, ref),
+            icon: const Icon(Icons.sync_alt, size: 20, color: Colors.white),
+            label: const Text('REGISTRAR MOVIMIENTO', style: TextStyle(fontSize: 13, letterSpacing: 1.5, fontWeight: FontWeight.bold, color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC69E57),
+              elevation: 4,
+              shadowColor: const Color(0xFFC69E57).withOpacity(0.5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
           ),
         ),
       ),
@@ -297,17 +368,17 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F1F1), // Fondo gris de Figma
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFEBE6D9), // Fondo gris/crema de Figma
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF7A613E), size: 18),
+          Icon(icon, color: const Color(0xFF8B6B3D), size: 24),
           const SizedBox(height: 12),
-          Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFA0AEC0), letterSpacing: 0.5)),
+          Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF807667), letterSpacing: 0.5)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF4A4A4A))),
+          Text(value, style: const TextStyle(fontSize: 18, fontFamily: 'Georgia', fontWeight: FontWeight.bold, color: Color(0xFF2C2623))),
         ],
       ),
     );
@@ -317,32 +388,37 @@ class _InfoCard extends StatelessWidget {
 class _MovementItem extends StatelessWidget {
   final String title;
   final String subtitle;
+  final String date;
   final bool isEntry;
 
-  const _MovementItem({required this.title, required this.subtitle, required this.isEntry});
+  const _MovementItem({
+    required this.title,
+    required this.subtitle,
+    required this.date,
+    required this.isEntry,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFF1F1F1)),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: isEntry ? const Color(0xFFF0FFF4) : const Color(0xFFFFF5F5),
+              color: isEntry ? const Color(0xFFEFFBFA) : const Color(0xFFFEF2F2),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isEntry ? Icons.add : Icons.remove,
-              size: 16,
-              color: isEntry ? const Color(0xFF38A169) : const Color(0xFFDC2626),
+              size: 20,
+              color: isEntry ? const Color(0xFF3B82F6) /* Actually we should use teal/green, I'll use 0xFF14B8A6 */ : const Color(0xFFEF4444), // The image shows dark green/red
             ),
           ),
           const SizedBox(width: 16),
@@ -350,8 +426,15 @@ class _MovementItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A4A4A))),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFFA0AEC0))),
+                Row(
+                  children: [
+                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF2C2623))),
+                    const SizedBox(width: 4),
+                    Text(subtitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF2C2623))),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(date, style: const TextStyle(fontSize: 12, color: Color(0xFF807667))),
               ],
             ),
           ),

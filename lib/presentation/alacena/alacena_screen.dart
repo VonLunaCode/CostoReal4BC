@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
+import '../widgets/kitchy_bottom_nav.dart';
 import 'movimiento_stock_bottom_sheet.dart';
 
 /// Provider que gestiona la lista de insumos desde el backend.
@@ -35,14 +36,21 @@ class AlacenaScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: const Text(
-          'Alacena',
-          style: TextStyle(
-            fontFamily: 'serif',
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1A202C),
-          ),
+        title: Row(
+          children: [
+            const Icon(Icons.restaurant_menu, color: Color(0xFFB8872A), size: 28),
+            const SizedBox(width: 8),
+            const Text(
+              'Alacena',
+              style: TextStyle(
+                fontFamily: 'Georgia',
+                fontStyle: FontStyle.italic,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2C2623),
+              ),
+            ),
+          ],
         ),
         actions: [
           Padding(
@@ -116,28 +124,21 @@ class AlacenaScreen extends ConsumerWidget {
                 // Search Bar
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFFEBE6D9), // Light grayish-beige from design
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: TextField(
                     onChanged: (val) => ref.read(searchQueryProvider.notifier).state = val,
                     decoration: InputDecoration(
                       hintText: 'Buscar insumos...',
-                      hintStyle: const TextStyle(color: Color(0xFFA0AEC0)),
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFFA0AEC0)),
+                      hintStyle: const TextStyle(color: Color(0xFF9E9E9E)),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF9E9E9E)),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 if (criticos.isNotEmpty || desactualizados.isNotEmpty) ...[
                   const _SectionHeader(title: 'ATENCIÓN NECESARIA', color: Color(0xFF718096)),
@@ -164,10 +165,12 @@ class AlacenaScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/alacena/crear'),
         backgroundColor: const Color(0xFFC29F5C),
-        elevation: 4,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
-      bottomNavigationBar: _BottomNav(),
+      extendBody: true,
+      bottomNavigationBar: const KitchyBottomNav(currentIndex: 2),
     );
   }
 }
@@ -179,14 +182,29 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.2,
-        color: color,
-      ),
+    return Row(
+      children: [
+        if (title.contains('NECESARIA')) ...[
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: Color(0xFFDC2626),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.5,
+            color: color.withOpacity(0.7),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -201,14 +219,7 @@ class _InsumoCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Determinar qué alertas tiene el insumo
     final now = DateTime.now();
-    final cantActual = double.tryParse(insumo.cantidadActual) ?? 0.0;
-    final alertaMin = double.tryParse(insumo.alertaMinimo ?? '0') ?? 0.0;
-    
-    final isStockBajo = cantActual <= alertaMin;
-    final isPrecioViejo = now.difference(insumo.fechaUltimoPrecio).inDays > 30;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -237,27 +248,21 @@ class _InsumoCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (isStockBajo || isPrecioViejo) ...[
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (isStockBajo)
-                        const _AlertBadge(
-                          label: 'STOCK BAJO',
-                          icon: Icons.inventory_2,
-                          color: Color(0xFFDC2626),
-                          bgColor: Color(0xFFFEE2E2),
-                        ),
-                      if (isPrecioViejo)
-                        const _AlertBadge(
-                          label: 'PRECIO DESACTUALIZADO',
-                          icon: Icons.warning_amber,
-                          color: Color(0xFFD97706),
-                          bgColor: Color(0xFFFEF3C7),
-                        ),
-                    ],
-                  ),
+                if (type == _CardType.critical || type == _CardType.warning) ...[
+                  if (type == _CardType.critical)
+                    const _AlertBadge(
+                      label: 'STOCK BAJO',
+                      icon: Icons.inventory_2_outlined,
+                      color: Color(0xFFDC2626),
+                      bgColor: Color(0xFFFDE8E8),
+                    ),
+                  if (type == _CardType.warning)
+                    const _AlertBadge(
+                      label: 'PRECIO DESACTUALIZADO',
+                      icon: Icons.warning_amber_rounded,
+                      color: Color(0xFFD97706),
+                      bgColor: Color(0xFFFEF3C7),
+                    ),
                   const SizedBox(height: 12),
                 ],
                 
@@ -265,17 +270,20 @@ class _InsumoCard extends ConsumerWidget {
                   children: [
                     // Imagen / Icono de Insumo
                     Container(
-                      width: 60,
-                      height: 60,
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF7F7F7),
+                        color: const Color(0xFF2C2623), // Dark background matching the image placeholder
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
-                        child: Icon(Icons.inventory_2_outlined, color: Color(0xFFBC985D), size: 30),
+                      child: Center(
+                        child: Text(
+                          insumo.nombre.substring(0, 1).toUpperCase(),
+                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     // Información
                     Expanded(
                       child: Column(
@@ -284,24 +292,40 @@ class _InsumoCard extends ConsumerWidget {
                           Text(
                             insumo.nombre,
                             style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              color: Color(0xFF1E1E1E),
-                              fontFamily: 'serif',
+                              fontFamily: 'Georgia',
+                              fontSize: 16,
+                              color: Color(0xFF2C2623),
+                              height: 1.2,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${insumo.cantidadActual}${insumo.unidad.value} restantes',
                             style: const TextStyle(
-                              color: Color(0xFF718096),
-                              fontSize: 14,
+                              color: Color(0xFF807667),
+                              fontSize: 12,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: Color(0xFFCBD5E0)),
+                    // Conditional "ULT. COMPRA" info if type is normal
+                    if (type == _CardType.normal) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Text(
+                            'ÚLT. COMPRA',
+                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: Color(0xFFA0AEC0)),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Hace ${now.difference(insumo.fechaUltimoPrecio).inDays} días',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2C2623)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -354,75 +378,4 @@ class _AlertBadge extends StatelessWidget {
   }
 }
 
-class _BottomNav extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(top: 8, bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _NavItem(
-            icon: Icons.assignment_outlined,
-            label: 'Pedidos',
-            isActive: false,
-            onTap: () => context.go('/'),
-          ),
-          _NavItem(
-            icon: Icons.restaurant_menu,
-            label: 'Recetas',
-            isActive: false,
-            onTap: () => context.push('/recetas'),
-          ),
-          _NavItem(
-            icon: Icons.inventory_2,
-            label: 'Alacena',
-            isActive: true,
-            onTap: () {},
-          ),
-          _NavItem(
-            icon: Icons.person_outline,
-            label: 'Perfil',
-            isActive: false,
-            onTap: () => context.push('/perfil'),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-  const _NavItem({required this.icon, required this.label, required this.isActive, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? const Color(0xFFC29F5C) : const Color(0xFFA0AEC0);
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

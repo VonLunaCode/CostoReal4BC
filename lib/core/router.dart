@@ -4,6 +4,7 @@ import '../presentation/auth_provider.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/login_screen.dart';
 import '../presentation/screens/register_screen.dart';
+import '../presentation/screens/perfil_screen.dart';
 
 import '../presentation/alacena/alacena_screen.dart';
 import '../presentation/alacena/insumo_form_screen.dart';
@@ -74,6 +75,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/perfil',
+        builder: (context, state) => const PerfilScreen(),
       ),
       GoRoute(
         path: '/login',

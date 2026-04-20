@@ -61,115 +61,155 @@ class _GastosOcultosWidgetState extends State<GastosOcultosWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'GASTOS ADICIONALES',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.2,
-              color: Color(0xFF718096),
-            ),
-          ),
-          const SizedBox(height: 12),
-          
-          // --- EMPAQUE ---
-          SwitchListTile(
-            title: const Text('Costo de Empaque', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            subtitle: const Text('Bolsas, cajas, etiquetas...', style: TextStyle(fontSize: 12)),
-            value: _empaqueActivo,
-            activeColor: const Color(0xFFBC985D),
-            onChanged: (val) {
-              setState(() => _empaqueActivo = val);
-              _notifyChanges();
-            },
-            contentPadding: EdgeInsets.zero,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Incluir Empaque', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF4A4035))),
+              Switch(
+                value: _empaqueActivo,
+                activeColor: Colors.white,
+                activeTrackColor: const Color(0xFF7A613E),
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: const Color(0xFFD5D1C6),
+                onChanged: (val) {
+                  setState(() => _empaqueActivo = val);
+                  _notifyChanges();
+                },
+              ),
+            ],
           ),
           if (_empaqueActivo)
             Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: TextFormField(
-                controller: _empaqueController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Monto fijo MXN',
-                  prefixText: r'$ ',
-                  hintText: '0.00',
-                  fillColor: const Color(0xFFF7FAFC),
-                  filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                ),
-                onChanged: (val) {
-                  _empaqueValor = double.tryParse(val) ?? 0.0;
-                  _notifyChanges();
-                },
+              padding: const EdgeInsets.only(top: 8, bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Costo del empaque:', style: TextStyle(fontSize: 11, color: Color(0xFF4A4035))),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFEBE6D9), borderRadius: BorderRadius.circular(12)),
+                        child: const Text('VALORES SUGERIDOS', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF7A613E), letterSpacing: 0.5)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 40,
+                    child: TextFormField(
+                      controller: _empaqueController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: const TextStyle(fontSize: 14, color: Color(0xFF2C2623)),
+                      decoration: InputDecoration(
+                        prefixText: r'$ ',
+                        prefixStyle: const TextStyle(fontSize: 14, color: Color(0xFF4A4035)),
+                        fillColor: const Color(0xFFEBE6D9),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                      ),
+                      onChanged: (val) {
+                        _empaqueValor = double.tryParse(val) ?? 0.0;
+                        _notifyChanges();
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
 
           const Divider(),
 
           // --- GAS Y LUZ ---
-          SwitchListTile(
-            title: const Text('Gas y Luz', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            subtitle: const Text('Estimado de energía utilizada', style: TextStyle(fontSize: 12)),
-            value: _gasLuzActivo,
-            activeColor: const Color(0xFFBC985D),
-            onChanged: (val) {
-              setState(() => _gasLuzActivo = val);
-              _notifyChanges();
-            },
-            contentPadding: EdgeInsets.zero,
-          ),
-          if (_gasLuzActivo)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: TextFormField(
-                controller: _gasLuzController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Porcentaje %',
-                  suffixText: '%',
-                  hintText: '0',
-                  fillColor: const Color(0xFFF7FAFC),
-                  filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Incluir Energías', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF4A4035))),
+              Switch(
+                value: _gasLuzActivo,
+                activeColor: Colors.white,
+                activeTrackColor: const Color(0xFF7A613E),
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: const Color(0xFFD5D1C6),
                 onChanged: (val) {
-                  double parsed = double.tryParse(val) ?? 0.0;
-                  _gasLuzPorcentaje = parsed > 100 ? 100 : parsed;
+                  setState(() => _gasLuzActivo = val);
                   _notifyChanges();
                 },
               ),
-            ),
-
-          // --- ADVERTENCIA ---
-          if (!_empaqueActivo && !_gasLuzActivo)
-            const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Row(
+            ],
+          ),
+          if (_gasLuzActivo)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.warning_amber_rounded, size: 16, color: Colors.orange),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Gastos ocultos no incluidos en el costeo',
-                      style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(color: const Color(0xFFEBE6D9), borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                            alignment: Alignment.center,
+                            child: const Text('% Porcentaje', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2C2623))),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            alignment: Alignment.center,
+                            child: const Text('\$ Monto Fijo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF807667))),
+                          ),
+                        )
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Valor base:', style: TextStyle(fontSize: 11, color: Color(0xFF4A4035))),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFEBE6D9), borderRadius: BorderRadius.circular(12)),
+                        child: const Text('VALORES SUGERIDOS', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF7A613E), letterSpacing: 0.5)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 40,
+                    child: TextFormField(
+                      controller: _gasLuzController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: const TextStyle(fontSize: 14, color: Color(0xFF2C2623)),
+                      decoration: InputDecoration(
+                        fillColor: const Color(0xFFEBE6D9),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                      ),
+                      onChanged: (val) {
+                        double parsed = double.tryParse(val) ?? 0.0;
+                        _gasLuzPorcentaje = parsed > 100 ? 100 : parsed;
+                        _notifyChanges();
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text('calculado sobre el costo de insumos', style: TextStyle(fontSize: 10, color: Color(0xFF807667))),
                 ],
               ),
             ),
         ],
-      ),
-    );
+      );
   }
 }

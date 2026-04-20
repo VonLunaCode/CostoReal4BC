@@ -112,25 +112,27 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         children: [
                           GestureDetector(
                             onTap: () => context.pop(),
-                            child: const Icon(Icons.arrow_back, color: Color(0xFF4A5568)),
+                            child: const Icon(Icons.menu, color: Color(0xFF7A613E)), // Or back button styled similarly
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.restaurant, color: Color(0xFF7A613E), size: 20),
+                          const SizedBox(width: 4),
                           const Text(
                             'KITCHY',
                             style: TextStyle(
                               fontFamily: 'Georgia',
-                              fontSize: 22,
+                              fontSize: 18,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 3,
-                              color: Color(0xFFB8872A),
+                              color: Color(0xFF7A613E),
                             ),
                           ),
                         ],
                       ),
                       const CircleAvatar(
                         radius: 18,
-                        backgroundColor: Color(0xFFE9DCC8),
-                        child: Icon(Icons.person, color: Color(0xFF718096), size: 20),
+                        backgroundColor: Color(0xFF2C2623),
+                        child: Icon(Icons.person, color: Colors.white, size: 20),
                       ),
                     ],
                   ),
@@ -148,16 +150,16 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                     const Text(
                       'CREAR NUEVA OBRA',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 9,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 2,
-                        color: Color(0xFFB8872A),
+                        letterSpacing: 1.5,
+                        color: Color(0xFF7A613E),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEDE8DF),
+                        color: const Color(0xFFF5F2EA),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: TextFormField(
@@ -165,16 +167,19 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         validator: (v) => v!.isEmpty ? 'Requerido' : null,
                         style: const TextStyle(
                           fontFamily: 'Georgia',
-                          fontSize: 22,
-                          color: Color(0xFF4A4035),
+                          fontStyle: FontStyle.italic,
+                          fontSize: 28,
+                          color: Color(0xFF2C2623),
                           fontWeight: FontWeight.bold,
                         ),
                         decoration: const InputDecoration(
                           hintText: 'Nombre de la Receta',
                           hintStyle: TextStyle(
                             fontFamily: 'Georgia',
-                            fontSize: 22,
-                            color: Color(0xFFB0A898),
+                            fontStyle: FontStyle.italic,
+                            fontSize: 28,
+                            color: Color(0xFFD5D1C6),
+                            fontWeight: FontWeight.bold,
                           ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.all(20),
@@ -196,55 +201,68 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEDE8DF),
+                          color: const Color(0xFFF5F2EA),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Stack(
                           children: [
-                            const Text('PORCIONES', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: Color(0xFF718096))),
-                            const SizedBox(height: 8),
-                            Row(
+                            Positioned(
+                              right: -10,
+                              top: -10,
+                              child: Icon(Icons.people_alt, size: 70, color: const Color(0xFF7A613E).withOpacity(0.05)),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _porcionesController,
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (v) => setState(() {}),
-                                    validator: (v) {
-                                      if (v!.isEmpty) return 'Requerido';
-                                      if (int.tryParse(v) == null || int.parse(v) <= 0) return '> 0';
-                                      return null;
-                                    },
-                                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF2D3748)),
-                                    decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
-                                  ),
+                                const Text('PORCIONES', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: Color(0xFF807667))),
+                                const SizedBox(height: 4),
+                                TextFormField(
+                                  controller: _porcionesController,
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (v) => setState(() {}),
+                                  validator: (v) {
+                                    if (v!.isEmpty) return 'Requerido';
+                                    if (int.tryParse(v) == null || int.parse(v) <= 0) return '> 0';
+                                    return null;
+                                  },
+                                  style: const TextStyle(fontFamily: 'Georgia', fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF7A613E)),
+                                  decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
                                 ),
-                                const Icon(Icons.restaurant, color: Color(0xFFB8872A), size: 20),
                               ],
                             ),
                           ],
                         ),
                       ),
                     ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFBFBF9),
+                          color: const Color(0xFFF5F2EA),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFEDE8DF)),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Stack(
                           children: [
-                            const Text('TIEMPO EST.', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: Color(0xFF718096))),
-                            const SizedBox(height: 8),
-                            Row(
+                            Positioned(
+                              right: -10,
+                              top: 0,
+                              child: Icon(Icons.schedule, size: 60, color: const Color(0xFF7A613E).withOpacity(0.05)),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('${_getTotalTime()}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF2D3748))),
-                                const SizedBox(width: 4),
-                                const Text('min', style: TextStyle(fontSize: 14, color: Color(0xFF718096))),
+                                const Text('TIEMPO EST.', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: Color(0xFF807667))),
+                                const SizedBox(height: 8),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text('${_getTotalTime()}', style: const TextStyle(fontFamily: 'Georgia', fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF7A613E))),
+                                    const SizedBox(width: 4),
+                                    const Text('min', style: TextStyle(fontSize: 12, color: Color(0xFF807667))),
+                                  ],
+                                ),
                               ],
                             ),
                           ],
@@ -257,8 +275,8 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
             ),
 
             // ── INGREDIENTES ──
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+            const SliverPadding(
+              padding: EdgeInsets.fromLTRB(24, 28, 24, 0),
               sliver: SliverToBoxAdapter(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -269,19 +287,12 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         fontFamily: 'Georgia',
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3748),
+                        color: Color(0xFF2C2623),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFB8872A)),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'PRECISIÓN GRAMATINAL',
-                        style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFFB8872A), letterSpacing: 1),
-                      ),
+                    const Text(
+                      'PRECISIÓN GARANTIZADA',
+                      style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFFA0AEC0), letterSpacing: 1),
                     ),
                   ],
                 ),
@@ -295,8 +306,8 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                 child: insumosAsync.when(
                   data: (insumos) => Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEDE8DF),
-                      borderRadius: BorderRadius.circular(14),
+                      color: const Color(0xFFEBE6D9),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Autocomplete<InsumoResponse>(
                       displayStringForOption: (o) => o.nombre,
@@ -313,8 +324,8 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                           focusNode: focusNode,
                           decoration: const InputDecoration(
                             hintText: 'Buscar ingrediente (ej. Harina de fuerza)...',
-                            hintStyle: TextStyle(color: Color(0xFF9E9480), fontSize: 13),
-                            prefixIcon: Icon(Icons.search, color: Color(0xFF9E9480)),
+                            hintStyle: TextStyle(color: Color(0xFF807667), fontSize: 13),
+                            prefixIcon: Icon(Icons.search, color: Color(0xFF807667)),
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.symmetric(vertical: 14),
                           ),
@@ -322,7 +333,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                       },
                     ),
                   ),
-                  loading: () => const LinearProgressIndicator(color: Color(0xFFB8872A)),
+                  loading: () => const LinearProgressIndicator(color: Color(0xFF7A613E)),
                   error: (e, s) => const Text('Error al cargar insumos'),
                 ),
               ),
@@ -352,22 +363,22 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         fontFamily: 'Georgia',
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3748),
+                        color: Color(0xFF2C2623),
                       ),
                     ),
                     GestureDetector(
                       onTap: () => setState(() => _pasos.add(PasoFormData())),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFFB8872A)),
+                          color: const Color(0xFFEBE6D9),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Row(
                           children: [
-                            Icon(Icons.add_circle_outline, size: 14, color: Color(0xFFB8872A)),
+                            Icon(Icons.add_circle_outline, size: 14, color: Color(0xFF7A613E)),
                             SizedBox(width: 4),
-                            Text('AÑADIR PASO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFB8872A), letterSpacing: 1)),
+                            Text('AÑADIR PASO', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF7A613E), letterSpacing: 1)),
                           ],
                         ),
                       ),
@@ -391,23 +402,25 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               sliver: SliverToBoxAdapter(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _saveReceta,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7A6330),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                      elevation: 0,
+                child: Center(
+                  child: SizedBox(
+                    width: 220,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _saveReceta,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7A613E),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                        elevation: 0,
+                      ),
+                      child: _isSaving
+                          ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                          : const Text(
+                              'GUARDAR RECETA',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+                            ),
                     ),
-                    child: _isSaving
-                        ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                        : const Text(
-                            'GUARDAR RECETA',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 2),
-                          ),
                   ),
                 ),
               ),
@@ -458,10 +471,10 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
 
           // Stepper oval estilo Figma
           Container(
-            height: 36,
+            height: 32,
             decoration: BoxDecoration(
-              color: const Color(0xFFEDE8DF),
-              borderRadius: BorderRadius.circular(20),
+              color: const Color(0xFFEBE6D9),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -473,12 +486,12 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                   },
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Icon(Icons.remove, size: 16, color: Color(0xFF4A5568)),
+                    child: Icon(Icons.remove, size: 16, color: Color(0xFF8B6B3D)),
                   ),
                 ),
                 Text(
                   '${data.cantidad.isEmpty ? "0" : data.cantidad}${_getUnidadLabel(data)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF2D3748)),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2623)),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -487,7 +500,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                   },
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Icon(Icons.add, size: 16, color: Color(0xFF4A5568)),
+                    child: Icon(Icons.add, size: 16, color: Color(0xFF8B6B3D)),
                   ),
                 ),
               ],
@@ -502,8 +515,8 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
             child: Container(
               width: 32,
               height: 32,
-              decoration: const BoxDecoration(color: Color(0xFFFFEBEB), shape: BoxShape.circle),
-              child: const Icon(Icons.delete_outline, color: Colors.red, size: 16),
+              decoration: const BoxDecoration(color: Colors.transparent, shape: BoxShape.circle),
+              child: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 18),
             ),
           ),
         ],
@@ -522,9 +535,8 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF5F2EA),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,19 +548,19 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
               children: [
                 // Número del paso
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
-                    color: data.esCritico ? Colors.red.shade100 : const Color(0xFFEDE8DF),
+                    color: index == 0 ? const Color(0xFF7A613E) : const Color(0xFFD5D1C6),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       '${index + 1}',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: data.esCritico ? Colors.red : const Color(0xFFB8872A),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: index == 0 ? Colors.white : const Color(0xFF7A613E),
                       ),
                     ),
                   ),
@@ -561,7 +573,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                     onChanged: (v) => data.descripcion = v,
                     validator: (v) => (v == null || v.length < 5) ? 'Mínimo 5 caracteres' : null,
                     maxLines: null,
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF4A5568), height: 1.5),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF4A4A4A), height: 1.5, fontWeight: FontWeight.normal),
                     decoration: const InputDecoration(
                       hintText: 'Describe este paso...',
                       hintStyle: TextStyle(color: Color(0xFFA0AEC0)),
@@ -571,33 +583,33 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                     ),
                   ),
                 ),
-                // Ícono reordenar
-                const Icon(Icons.drag_indicator, color: Color(0xFFCBD5E0), size: 20),
               ],
             ),
           ),
 
           // Footer del paso: PASO CRÍTICO + eliminar
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            padding: const EdgeInsets.fromLTRB(52, 0, 16, 16),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDE8DF).withOpacity(0.3),
+                    color: const Color(0xFFEBE6D9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.timer_outlined, size: 14, color: Color(0xFF718096)),
+                      const Icon(Icons.timer_outlined, size: 14, color: Color(0xFF2C2623)),
                       const SizedBox(width: 6),
+                      const Text('DURACIÓN', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF2C2623), letterSpacing: 0.5)),
+                      const SizedBox(width: 12),
                       SizedBox(
-                        width: 30,
+                        width: 25,
                         child: TextFormField(
                           initialValue: data.duracionSegundos != null ? (data.duracionSegundos! ~/ 60).toString() : '',
                           keyboardType: TextInputType.number,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF795918)),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF7A613E)),
                           decoration: const InputDecoration(
                             isDense: true,
                             contentPadding: EdgeInsets.zero,
@@ -611,35 +623,50 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                           },
                         ),
                       ),
-                      const Text('min', style: TextStyle(fontSize: 10, color: Color(0xFF718096))),
+                      const Text('min', style: TextStyle(fontSize: 10, color: Color(0xFF7A613E))),
                     ],
                   ),
                 ),
                 const SizedBox(width: 16),
-                Text(
-                  'CRÍTICO',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                    color: data.esCritico ? Colors.red : const Color(0xFFB8872A),
-                  ),
+                const Column(
+                  children: [
+                    Text(
+                      'PASO',
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF9E3A3A), // Reddish
+                      ),
+                    ),
+                    Text(
+                      'CRÍTICO',
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF9E3A3A),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Switch(
-                  value: data.esCritico,
-                  activeColor: Colors.red.shade400,
-                  inactiveThumbColor: const Color(0xFFCBD5E0),
-                  inactiveTrackColor: const Color(0xFFE2E8F0),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (v) => setState(() => data.esCritico = v),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 20,
+                  width: 36,
+                  child: Transform.scale(
+                    scale: 0.7,
+                    child: Switch(
+                      value: data.esCritico,
+                      activeColor: Colors.white,
+                      activeTrackColor: const Color(0xFF7A613E),
+                      inactiveThumbColor: Colors.white,
+                      inactiveTrackColor: const Color(0xFFD5D1C6),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onChanged: (v) => setState(() => data.esCritico = v),
+                    ),
+                  ),
                 ),
                 const Spacer(),
-                if (_pasos.length > 1)
-                  GestureDetector(
-                    onTap: () => setState(() => _pasos.removeAt(index)),
-                    child: const Icon(Icons.delete_outline, color: Color(0xFFCBD5E0), size: 18),
-                  ),
+                const Icon(Icons.drag_indicator, color: Color(0xFF807667), size: 20),
               ],
             ),
           ),
