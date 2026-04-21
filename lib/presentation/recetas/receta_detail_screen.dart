@@ -217,9 +217,9 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
 
                     // ── DONA CHART ──
                     DonaChartWidget(
-                      costoInsumos: costoLocal,
-                      costoEmpaque: costoEmpaqueTotal,
-                      costoEnergia: costoEnergiaTotal,
+                      costoInsumos: receta.porciones > 0 ? costoLocal / receta.porciones : costoLocal,
+                      costoEmpaque: receta.porciones > 0 ? costoEmpaqueTotal / receta.porciones : costoEmpaqueTotal,
+                      costoEnergia: receta.porciones > 0 ? costoEnergiaTotal / receta.porciones : costoEnergiaTotal,
                       precioVenta: precioVenta,
                     ),
                     const SizedBox(height: 32),
