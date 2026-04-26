@@ -831,6 +831,201 @@ extension $InsumoUpdateExtension on InsumoUpdate {
 }
 
 @JsonSerializable(explicitToJson: true)
+class LineaPedidoCreate {
+  const LineaPedidoCreate({
+    required this.nombreProducto,
+    required this.cantidadPorciones,
+    required this.precioAcordadoMxn,
+    this.recetaId,
+  });
+
+  factory LineaPedidoCreate.fromJson(Map<String, dynamic> json) =>
+      _$LineaPedidoCreateFromJson(json);
+
+  static const toJsonFactory = _$LineaPedidoCreateToJson;
+  Map<String, dynamic> toJson() => _$LineaPedidoCreateToJson(this);
+
+  @JsonKey(name: 'nombre_producto')
+  final String nombreProducto;
+  @JsonKey(name: 'cantidad_porciones')
+  final int cantidadPorciones;
+  @JsonKey(name: 'precio_acordado_mxn')
+  final dynamic precioAcordadoMxn;
+  @JsonKey(name: 'receta_id')
+  final dynamic recetaId;
+  static const fromJsonFactory = _$LineaPedidoCreateFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is LineaPedidoCreate &&
+            (identical(other.nombreProducto, nombreProducto) ||
+                const DeepCollectionEquality()
+                    .equals(other.nombreProducto, nombreProducto)) &&
+            (identical(other.cantidadPorciones, cantidadPorciones) ||
+                const DeepCollectionEquality()
+                    .equals(other.cantidadPorciones, cantidadPorciones)) &&
+            (identical(other.precioAcordadoMxn, precioAcordadoMxn) ||
+                const DeepCollectionEquality()
+                    .equals(other.precioAcordadoMxn, precioAcordadoMxn)) &&
+            (identical(other.recetaId, recetaId) ||
+                const DeepCollectionEquality()
+                    .equals(other.recetaId, recetaId)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(nombreProducto) ^
+      const DeepCollectionEquality().hash(cantidadPorciones) ^
+      const DeepCollectionEquality().hash(precioAcordadoMxn) ^
+      const DeepCollectionEquality().hash(recetaId) ^
+      runtimeType.hashCode;
+}
+
+extension $LineaPedidoCreateExtension on LineaPedidoCreate {
+  LineaPedidoCreate copyWith(
+      {String? nombreProducto,
+      int? cantidadPorciones,
+      dynamic precioAcordadoMxn,
+      dynamic recetaId}) {
+    return LineaPedidoCreate(
+        nombreProducto: nombreProducto ?? this.nombreProducto,
+        cantidadPorciones: cantidadPorciones ?? this.cantidadPorciones,
+        precioAcordadoMxn: precioAcordadoMxn ?? this.precioAcordadoMxn,
+        recetaId: recetaId ?? this.recetaId);
+  }
+
+  LineaPedidoCreate copyWithWrapped(
+      {Wrapped<String>? nombreProducto,
+      Wrapped<int>? cantidadPorciones,
+      Wrapped<dynamic>? precioAcordadoMxn,
+      Wrapped<dynamic>? recetaId}) {
+    return LineaPedidoCreate(
+        nombreProducto: (nombreProducto != null
+            ? nombreProducto.value
+            : this.nombreProducto),
+        cantidadPorciones: (cantidadPorciones != null
+            ? cantidadPorciones.value
+            : this.cantidadPorciones),
+        precioAcordadoMxn: (precioAcordadoMxn != null
+            ? precioAcordadoMxn.value
+            : this.precioAcordadoMxn),
+        recetaId: (recetaId != null ? recetaId.value : this.recetaId));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class LineaPedidoResponse {
+  const LineaPedidoResponse({
+    required this.nombreProducto,
+    required this.cantidadPorciones,
+    required this.precioAcordadoMxn,
+    this.recetaId,
+    required this.id,
+    required this.pedidoId,
+  });
+
+  factory LineaPedidoResponse.fromJson(Map<String, dynamic> json) =>
+      _$LineaPedidoResponseFromJson(json);
+
+  static const toJsonFactory = _$LineaPedidoResponseToJson;
+  Map<String, dynamic> toJson() => _$LineaPedidoResponseToJson(this);
+
+  @JsonKey(name: 'nombre_producto')
+  final String nombreProducto;
+  @JsonKey(name: 'cantidad_porciones')
+  final int cantidadPorciones;
+  @JsonKey(name: 'precio_acordado_mxn')
+  final String precioAcordadoMxn;
+  @JsonKey(name: 'receta_id')
+  final dynamic recetaId;
+  @JsonKey(name: 'id')
+  final String id;
+  @JsonKey(name: 'pedido_id')
+  final String pedidoId;
+  static const fromJsonFactory = _$LineaPedidoResponseFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is LineaPedidoResponse &&
+            (identical(other.nombreProducto, nombreProducto) ||
+                const DeepCollectionEquality()
+                    .equals(other.nombreProducto, nombreProducto)) &&
+            (identical(other.cantidadPorciones, cantidadPorciones) ||
+                const DeepCollectionEquality()
+                    .equals(other.cantidadPorciones, cantidadPorciones)) &&
+            (identical(other.precioAcordadoMxn, precioAcordadoMxn) ||
+                const DeepCollectionEquality()
+                    .equals(other.precioAcordadoMxn, precioAcordadoMxn)) &&
+            (identical(other.recetaId, recetaId) ||
+                const DeepCollectionEquality()
+                    .equals(other.recetaId, recetaId)) &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.pedidoId, pedidoId) ||
+                const DeepCollectionEquality()
+                    .equals(other.pedidoId, pedidoId)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(nombreProducto) ^
+      const DeepCollectionEquality().hash(cantidadPorciones) ^
+      const DeepCollectionEquality().hash(precioAcordadoMxn) ^
+      const DeepCollectionEquality().hash(recetaId) ^
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(pedidoId) ^
+      runtimeType.hashCode;
+}
+
+extension $LineaPedidoResponseExtension on LineaPedidoResponse {
+  LineaPedidoResponse copyWith(
+      {String? nombreProducto,
+      int? cantidadPorciones,
+      String? precioAcordadoMxn,
+      dynamic recetaId,
+      String? id,
+      String? pedidoId}) {
+    return LineaPedidoResponse(
+        nombreProducto: nombreProducto ?? this.nombreProducto,
+        cantidadPorciones: cantidadPorciones ?? this.cantidadPorciones,
+        precioAcordadoMxn: precioAcordadoMxn ?? this.precioAcordadoMxn,
+        recetaId: recetaId ?? this.recetaId,
+        id: id ?? this.id,
+        pedidoId: pedidoId ?? this.pedidoId);
+  }
+
+  LineaPedidoResponse copyWithWrapped(
+      {Wrapped<String>? nombreProducto,
+      Wrapped<int>? cantidadPorciones,
+      Wrapped<String>? precioAcordadoMxn,
+      Wrapped<dynamic>? recetaId,
+      Wrapped<String>? id,
+      Wrapped<String>? pedidoId}) {
+    return LineaPedidoResponse(
+        nombreProducto: (nombreProducto != null
+            ? nombreProducto.value
+            : this.nombreProducto),
+        cantidadPorciones: (cantidadPorciones != null
+            ? cantidadPorciones.value
+            : this.cantidadPorciones),
+        precioAcordadoMxn: (precioAcordadoMxn != null
+            ? precioAcordadoMxn.value
+            : this.precioAcordadoMxn),
+        recetaId: (recetaId != null ? recetaId.value : this.recetaId),
+        id: (id != null ? id.value : this.id),
+        pedidoId: (pedidoId != null ? pedidoId.value : this.pedidoId));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
 class MovimientoCreate {
   const MovimientoCreate({
     required this.tipo,
@@ -903,6 +1098,116 @@ extension $MovimientoCreateExtension on MovimientoCreate {
         tipo: (tipo != null ? tipo.value : this.tipo),
         cantidad: (cantidad != null ? cantidad.value : this.cantidad),
         motivo: (motivo != null ? motivo.value : this.motivo));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class MovimientoResponse {
+  const MovimientoResponse({
+    required this.id,
+    required this.insumoId,
+    required this.usuarioId,
+    required this.tipo,
+    required this.cantidad,
+    required this.motivo,
+    required this.fecha,
+  });
+
+  factory MovimientoResponse.fromJson(Map<String, dynamic> json) =>
+      _$MovimientoResponseFromJson(json);
+
+  static const toJsonFactory = _$MovimientoResponseToJson;
+  Map<String, dynamic> toJson() => _$MovimientoResponseToJson(this);
+
+  @JsonKey(name: 'id')
+  final String id;
+  @JsonKey(name: 'insumo_id')
+  final String insumoId;
+  @JsonKey(name: 'usuario_id')
+  final String usuarioId;
+  @JsonKey(name: 'tipo')
+  final String tipo;
+  @JsonKey(name: 'cantidad')
+  final String cantidad;
+  @JsonKey(name: 'motivo')
+  final String motivo;
+  @JsonKey(name: 'fecha')
+  final DateTime fecha;
+  static const fromJsonFactory = _$MovimientoResponseFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is MovimientoResponse &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.insumoId, insumoId) ||
+                const DeepCollectionEquality()
+                    .equals(other.insumoId, insumoId)) &&
+            (identical(other.usuarioId, usuarioId) ||
+                const DeepCollectionEquality()
+                    .equals(other.usuarioId, usuarioId)) &&
+            (identical(other.tipo, tipo) ||
+                const DeepCollectionEquality().equals(other.tipo, tipo)) &&
+            (identical(other.cantidad, cantidad) ||
+                const DeepCollectionEquality()
+                    .equals(other.cantidad, cantidad)) &&
+            (identical(other.motivo, motivo) ||
+                const DeepCollectionEquality().equals(other.motivo, motivo)) &&
+            (identical(other.fecha, fecha) ||
+                const DeepCollectionEquality().equals(other.fecha, fecha)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(insumoId) ^
+      const DeepCollectionEquality().hash(usuarioId) ^
+      const DeepCollectionEquality().hash(tipo) ^
+      const DeepCollectionEquality().hash(cantidad) ^
+      const DeepCollectionEquality().hash(motivo) ^
+      const DeepCollectionEquality().hash(fecha) ^
+      runtimeType.hashCode;
+}
+
+extension $MovimientoResponseExtension on MovimientoResponse {
+  MovimientoResponse copyWith(
+      {String? id,
+      String? insumoId,
+      String? usuarioId,
+      String? tipo,
+      String? cantidad,
+      String? motivo,
+      DateTime? fecha}) {
+    return MovimientoResponse(
+        id: id ?? this.id,
+        insumoId: insumoId ?? this.insumoId,
+        usuarioId: usuarioId ?? this.usuarioId,
+        tipo: tipo ?? this.tipo,
+        cantidad: cantidad ?? this.cantidad,
+        motivo: motivo ?? this.motivo,
+        fecha: fecha ?? this.fecha);
+  }
+
+  MovimientoResponse copyWithWrapped(
+      {Wrapped<String>? id,
+      Wrapped<String>? insumoId,
+      Wrapped<String>? usuarioId,
+      Wrapped<String>? tipo,
+      Wrapped<String>? cantidad,
+      Wrapped<String>? motivo,
+      Wrapped<DateTime>? fecha}) {
+    return MovimientoResponse(
+        id: (id != null ? id.value : this.id),
+        insumoId: (insumoId != null ? insumoId.value : this.insumoId),
+        usuarioId: (usuarioId != null ? usuarioId.value : this.usuarioId),
+        tipo: (tipo != null ? tipo.value : this.tipo),
+        cantidad: (cantidad != null ? cantidad.value : this.cantidad),
+        motivo: (motivo != null ? motivo.value : this.motivo),
+        fecha: (fecha != null ? fecha.value : this.fecha));
   }
 }
 
@@ -1079,6 +1384,261 @@ extension $PasoResponseExtension on PasoResponse {
             : this.duracionSegundos),
         esCritico: (esCritico != null ? esCritico.value : this.esCritico),
         id: (id != null ? id.value : this.id));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class PedidoCreate {
+  const PedidoCreate({
+    required this.clienteNombre,
+    this.clienteWhatsapp,
+    required this.fechaEntrega,
+    this.puntoEntrega,
+    this.notas,
+    required this.lineas,
+  });
+
+  factory PedidoCreate.fromJson(Map<String, dynamic> json) =>
+      _$PedidoCreateFromJson(json);
+
+  static const toJsonFactory = _$PedidoCreateToJson;
+  Map<String, dynamic> toJson() => _$PedidoCreateToJson(this);
+
+  @JsonKey(name: 'cliente_nombre')
+  final String clienteNombre;
+  @JsonKey(name: 'cliente_whatsapp')
+  final dynamic clienteWhatsapp;
+  @JsonKey(name: 'fecha_entrega')
+  final DateTime fechaEntrega;
+  @JsonKey(name: 'punto_entrega')
+  final dynamic puntoEntrega;
+  @JsonKey(name: 'notas')
+  final dynamic notas;
+  @JsonKey(name: 'lineas', defaultValue: <LineaPedidoCreate>[])
+  final List<LineaPedidoCreate> lineas;
+  static const fromJsonFactory = _$PedidoCreateFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PedidoCreate &&
+            (identical(other.clienteNombre, clienteNombre) ||
+                const DeepCollectionEquality()
+                    .equals(other.clienteNombre, clienteNombre)) &&
+            (identical(other.clienteWhatsapp, clienteWhatsapp) ||
+                const DeepCollectionEquality()
+                    .equals(other.clienteWhatsapp, clienteWhatsapp)) &&
+            (identical(other.fechaEntrega, fechaEntrega) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaEntrega, fechaEntrega)) &&
+            (identical(other.puntoEntrega, puntoEntrega) ||
+                const DeepCollectionEquality()
+                    .equals(other.puntoEntrega, puntoEntrega)) &&
+            (identical(other.notas, notas) ||
+                const DeepCollectionEquality().equals(other.notas, notas)) &&
+            (identical(other.lineas, lineas) ||
+                const DeepCollectionEquality().equals(other.lineas, lineas)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(clienteNombre) ^
+      const DeepCollectionEquality().hash(clienteWhatsapp) ^
+      const DeepCollectionEquality().hash(fechaEntrega) ^
+      const DeepCollectionEquality().hash(puntoEntrega) ^
+      const DeepCollectionEquality().hash(notas) ^
+      const DeepCollectionEquality().hash(lineas) ^
+      runtimeType.hashCode;
+}
+
+extension $PedidoCreateExtension on PedidoCreate {
+  PedidoCreate copyWith(
+      {String? clienteNombre,
+      dynamic clienteWhatsapp,
+      DateTime? fechaEntrega,
+      dynamic puntoEntrega,
+      dynamic notas,
+      List<LineaPedidoCreate>? lineas}) {
+    return PedidoCreate(
+        clienteNombre: clienteNombre ?? this.clienteNombre,
+        clienteWhatsapp: clienteWhatsapp ?? this.clienteWhatsapp,
+        fechaEntrega: fechaEntrega ?? this.fechaEntrega,
+        puntoEntrega: puntoEntrega ?? this.puntoEntrega,
+        notas: notas ?? this.notas,
+        lineas: lineas ?? this.lineas);
+  }
+
+  PedidoCreate copyWithWrapped(
+      {Wrapped<String>? clienteNombre,
+      Wrapped<dynamic>? clienteWhatsapp,
+      Wrapped<DateTime>? fechaEntrega,
+      Wrapped<dynamic>? puntoEntrega,
+      Wrapped<dynamic>? notas,
+      Wrapped<List<LineaPedidoCreate>>? lineas}) {
+    return PedidoCreate(
+        clienteNombre:
+            (clienteNombre != null ? clienteNombre.value : this.clienteNombre),
+        clienteWhatsapp: (clienteWhatsapp != null
+            ? clienteWhatsapp.value
+            : this.clienteWhatsapp),
+        fechaEntrega:
+            (fechaEntrega != null ? fechaEntrega.value : this.fechaEntrega),
+        puntoEntrega:
+            (puntoEntrega != null ? puntoEntrega.value : this.puntoEntrega),
+        notas: (notas != null ? notas.value : this.notas),
+        lineas: (lineas != null ? lineas.value : this.lineas));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class PedidoResponse {
+  const PedidoResponse({
+    required this.id,
+    required this.usuarioId,
+    required this.clienteNombre,
+    this.clienteWhatsapp,
+    required this.fechaEntrega,
+    this.puntoEntrega,
+    required this.estado,
+    this.notas,
+    required this.lineas,
+    this.whatsappUrl,
+  });
+
+  factory PedidoResponse.fromJson(Map<String, dynamic> json) =>
+      _$PedidoResponseFromJson(json);
+
+  static const toJsonFactory = _$PedidoResponseToJson;
+  Map<String, dynamic> toJson() => _$PedidoResponseToJson(this);
+
+  @JsonKey(name: 'id')
+  final String id;
+  @JsonKey(name: 'usuario_id')
+  final String usuarioId;
+  @JsonKey(name: 'cliente_nombre')
+  final String clienteNombre;
+  @JsonKey(name: 'cliente_whatsapp')
+  final dynamic clienteWhatsapp;
+  @JsonKey(name: 'fecha_entrega')
+  final DateTime fechaEntrega;
+  @JsonKey(name: 'punto_entrega')
+  final dynamic puntoEntrega;
+  @JsonKey(name: 'estado')
+  final String estado;
+  @JsonKey(name: 'notas')
+  final dynamic notas;
+  @JsonKey(name: 'lineas', defaultValue: <LineaPedidoResponse>[])
+  final List<LineaPedidoResponse> lineas;
+  @JsonKey(name: 'whatsapp_url')
+  final dynamic whatsappUrl;
+  static const fromJsonFactory = _$PedidoResponseFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PedidoResponse &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.usuarioId, usuarioId) ||
+                const DeepCollectionEquality()
+                    .equals(other.usuarioId, usuarioId)) &&
+            (identical(other.clienteNombre, clienteNombre) ||
+                const DeepCollectionEquality()
+                    .equals(other.clienteNombre, clienteNombre)) &&
+            (identical(other.clienteWhatsapp, clienteWhatsapp) ||
+                const DeepCollectionEquality()
+                    .equals(other.clienteWhatsapp, clienteWhatsapp)) &&
+            (identical(other.fechaEntrega, fechaEntrega) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaEntrega, fechaEntrega)) &&
+            (identical(other.puntoEntrega, puntoEntrega) ||
+                const DeepCollectionEquality()
+                    .equals(other.puntoEntrega, puntoEntrega)) &&
+            (identical(other.estado, estado) ||
+                const DeepCollectionEquality().equals(other.estado, estado)) &&
+            (identical(other.notas, notas) ||
+                const DeepCollectionEquality().equals(other.notas, notas)) &&
+            (identical(other.lineas, lineas) ||
+                const DeepCollectionEquality().equals(other.lineas, lineas)) &&
+            (identical(other.whatsappUrl, whatsappUrl) ||
+                const DeepCollectionEquality()
+                    .equals(other.whatsappUrl, whatsappUrl)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(usuarioId) ^
+      const DeepCollectionEquality().hash(clienteNombre) ^
+      const DeepCollectionEquality().hash(clienteWhatsapp) ^
+      const DeepCollectionEquality().hash(fechaEntrega) ^
+      const DeepCollectionEquality().hash(puntoEntrega) ^
+      const DeepCollectionEquality().hash(estado) ^
+      const DeepCollectionEquality().hash(notas) ^
+      const DeepCollectionEquality().hash(lineas) ^
+      const DeepCollectionEquality().hash(whatsappUrl) ^
+      runtimeType.hashCode;
+}
+
+extension $PedidoResponseExtension on PedidoResponse {
+  PedidoResponse copyWith(
+      {String? id,
+      String? usuarioId,
+      String? clienteNombre,
+      dynamic clienteWhatsapp,
+      DateTime? fechaEntrega,
+      dynamic puntoEntrega,
+      String? estado,
+      dynamic notas,
+      List<LineaPedidoResponse>? lineas,
+      dynamic whatsappUrl}) {
+    return PedidoResponse(
+        id: id ?? this.id,
+        usuarioId: usuarioId ?? this.usuarioId,
+        clienteNombre: clienteNombre ?? this.clienteNombre,
+        clienteWhatsapp: clienteWhatsapp ?? this.clienteWhatsapp,
+        fechaEntrega: fechaEntrega ?? this.fechaEntrega,
+        puntoEntrega: puntoEntrega ?? this.puntoEntrega,
+        estado: estado ?? this.estado,
+        notas: notas ?? this.notas,
+        lineas: lineas ?? this.lineas,
+        whatsappUrl: whatsappUrl ?? this.whatsappUrl);
+  }
+
+  PedidoResponse copyWithWrapped(
+      {Wrapped<String>? id,
+      Wrapped<String>? usuarioId,
+      Wrapped<String>? clienteNombre,
+      Wrapped<dynamic>? clienteWhatsapp,
+      Wrapped<DateTime>? fechaEntrega,
+      Wrapped<dynamic>? puntoEntrega,
+      Wrapped<String>? estado,
+      Wrapped<dynamic>? notas,
+      Wrapped<List<LineaPedidoResponse>>? lineas,
+      Wrapped<dynamic>? whatsappUrl}) {
+    return PedidoResponse(
+        id: (id != null ? id.value : this.id),
+        usuarioId: (usuarioId != null ? usuarioId.value : this.usuarioId),
+        clienteNombre:
+            (clienteNombre != null ? clienteNombre.value : this.clienteNombre),
+        clienteWhatsapp: (clienteWhatsapp != null
+            ? clienteWhatsapp.value
+            : this.clienteWhatsapp),
+        fechaEntrega:
+            (fechaEntrega != null ? fechaEntrega.value : this.fechaEntrega),
+        puntoEntrega:
+            (puntoEntrega != null ? puntoEntrega.value : this.puntoEntrega),
+        estado: (estado != null ? estado.value : this.estado),
+        notas: (notas != null ? notas.value : this.notas),
+        lineas: (lineas != null ? lineas.value : this.lineas),
+        whatsappUrl:
+            (whatsappUrl != null ? whatsappUrl.value : this.whatsappUrl));
   }
 }
 
@@ -1326,6 +1886,8 @@ class RecetaUpdate {
     this.nombre,
     this.porciones,
     this.margenPct,
+    this.ingredientes,
+    this.pasos,
   });
 
   factory RecetaUpdate.fromJson(Map<String, dynamic> json) =>
@@ -1340,6 +1902,10 @@ class RecetaUpdate {
   final dynamic porciones;
   @JsonKey(name: 'margen_pct')
   final dynamic margenPct;
+  @JsonKey(name: 'ingredientes')
+  final dynamic ingredientes;
+  @JsonKey(name: 'pasos')
+  final dynamic pasos;
   static const fromJsonFactory = _$RecetaUpdateFromJson;
 
   @override
@@ -1353,7 +1919,12 @@ class RecetaUpdate {
                     .equals(other.porciones, porciones)) &&
             (identical(other.margenPct, margenPct) ||
                 const DeepCollectionEquality()
-                    .equals(other.margenPct, margenPct)));
+                    .equals(other.margenPct, margenPct)) &&
+            (identical(other.ingredientes, ingredientes) ||
+                const DeepCollectionEquality()
+                    .equals(other.ingredientes, ingredientes)) &&
+            (identical(other.pasos, pasos) ||
+                const DeepCollectionEquality().equals(other.pasos, pasos)));
   }
 
   @override
@@ -1364,26 +1935,39 @@ class RecetaUpdate {
       const DeepCollectionEquality().hash(nombre) ^
       const DeepCollectionEquality().hash(porciones) ^
       const DeepCollectionEquality().hash(margenPct) ^
+      const DeepCollectionEquality().hash(ingredientes) ^
+      const DeepCollectionEquality().hash(pasos) ^
       runtimeType.hashCode;
 }
 
 extension $RecetaUpdateExtension on RecetaUpdate {
   RecetaUpdate copyWith(
-      {dynamic nombre, dynamic porciones, dynamic margenPct}) {
+      {dynamic nombre,
+      dynamic porciones,
+      dynamic margenPct,
+      dynamic ingredientes,
+      dynamic pasos}) {
     return RecetaUpdate(
         nombre: nombre ?? this.nombre,
         porciones: porciones ?? this.porciones,
-        margenPct: margenPct ?? this.margenPct);
+        margenPct: margenPct ?? this.margenPct,
+        ingredientes: ingredientes ?? this.ingredientes,
+        pasos: pasos ?? this.pasos);
   }
 
   RecetaUpdate copyWithWrapped(
       {Wrapped<dynamic>? nombre,
       Wrapped<dynamic>? porciones,
-      Wrapped<dynamic>? margenPct}) {
+      Wrapped<dynamic>? margenPct,
+      Wrapped<dynamic>? ingredientes,
+      Wrapped<dynamic>? pasos}) {
     return RecetaUpdate(
         nombre: (nombre != null ? nombre.value : this.nombre),
         porciones: (porciones != null ? porciones.value : this.porciones),
-        margenPct: (margenPct != null ? margenPct.value : this.margenPct));
+        margenPct: (margenPct != null ? margenPct.value : this.margenPct),
+        ingredientes:
+            (ingredientes != null ? ingredientes.value : this.ingredientes),
+        pasos: (pasos != null ? pasos.value : this.pasos));
   }
 }
 

@@ -143,6 +143,22 @@ final class _$Openapi extends Openapi {
   }
 
   @override
+  Future<Response<List<MovimientoResponse>>> _apiV1InsumosIdMovimientosGet({
+    required String? id,
+    int? limit,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/insumos/${id}/movimientos');
+    final Map<String, dynamic> $params = <String, dynamic>{'limit': limit};
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
+    return client.send<List<MovimientoResponse>, MovimientoResponse>($request);
+  }
+
+  @override
   Future<Response<List<RecetaResponse>>> _apiV1RecetasGet() {
     final Uri $url = Uri.parse('/api/v1/recetas/');
     final Request $request = Request(
@@ -249,6 +265,83 @@ final class _$Openapi extends Openapi {
       body: $body,
     );
     return client.send<GastoOcultoResponse, GastoOcultoResponse>($request);
+  }
+
+  @override
+  Future<Response<PedidoResponse>> _apiV1PedidosPost(
+      {required PedidoCreate? body}) {
+    final Uri $url = Uri.parse('/api/v1/pedidos/');
+    final $body = body;
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<PedidoResponse, PedidoResponse>($request);
+  }
+
+  @override
+  Future<Response<List<PedidoResponse>>> _apiV1PedidosGet({
+    String? estado,
+    int? limit,
+    int? offset,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/pedidos/');
+    final Map<String, dynamic> $params = <String, dynamic>{
+      'estado': estado,
+      'limit': limit,
+      'offset': offset,
+    };
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
+    return client.send<List<PedidoResponse>, PedidoResponse>($request);
+  }
+
+  @override
+  Future<Response<PedidoResponse>> _apiV1PedidosPedidoIdGet(
+      {required String? pedidoId}) {
+    final Uri $url = Uri.parse('/api/v1/pedidos/${pedidoId}');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<PedidoResponse, PedidoResponse>($request);
+  }
+
+  @override
+  Future<Response<PedidoResponse>> _apiV1PedidosPedidoIdDelete(
+      {required String? pedidoId}) {
+    final Uri $url = Uri.parse('/api/v1/pedidos/${pedidoId}');
+    final Request $request = Request(
+      'DELETE',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<PedidoResponse, PedidoResponse>($request);
+  }
+
+  @override
+  Future<Response<PedidoResponse>> _apiV1PedidosPedidoIdEstadoPatch({
+    required String? pedidoId,
+    required String? nuevoEstado,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/pedidos/${pedidoId}/estado');
+    final Map<String, dynamic> $params = <String, dynamic>{
+      'nuevo_estado': nuevoEstado
+    };
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
+    return client.send<PedidoResponse, PedidoResponse>($request);
   }
 
   @override

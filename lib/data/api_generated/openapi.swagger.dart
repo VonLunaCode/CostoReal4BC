@@ -198,6 +198,30 @@ abstract class Openapi extends ChopperService {
     @Body() required MovimientoCreate? body,
   });
 
+  ///Get Historial Movimientos
+  ///@param id
+  ///@param limit
+  Future<chopper.Response<List<MovimientoResponse>>>
+      apiV1InsumosIdMovimientosGet({
+    required String? id,
+    int? limit,
+  }) {
+    generatedMapping.putIfAbsent(
+        MovimientoResponse, () => MovimientoResponse.fromJsonFactory);
+
+    return _apiV1InsumosIdMovimientosGet(id: id, limit: limit);
+  }
+
+  ///Get Historial Movimientos
+  ///@param id
+  ///@param limit
+  @Get(path: '/api/v1/insumos/{id}/movimientos')
+  Future<chopper.Response<List<MovimientoResponse>>>
+      _apiV1InsumosIdMovimientosGet({
+    @Path('id') required String? id,
+    @Query('limit') int? limit,
+  });
+
   ///Get Recetas
   Future<chopper.Response<List<RecetaResponse>>> apiV1RecetasGet() {
     generatedMapping.putIfAbsent(
@@ -344,6 +368,107 @@ abstract class Openapi extends ChopperService {
     @Path('id') required String? id,
     @Path('tipo') required String? tipo,
     @Body() required ToggleGastoRequest? body,
+  });
+
+  ///Crear Pedido
+  Future<chopper.Response<PedidoResponse>> apiV1PedidosPost(
+      {required PedidoCreate? body}) {
+    generatedMapping.putIfAbsent(
+        PedidoResponse, () => PedidoResponse.fromJsonFactory);
+
+    return _apiV1PedidosPost(body: body);
+  }
+
+  ///Crear Pedido
+  @Post(
+    path: '/api/v1/pedidos/',
+    optionalBody: true,
+  )
+  Future<chopper.Response<PedidoResponse>> _apiV1PedidosPost(
+      {@Body() required PedidoCreate? body});
+
+  ///Listar Pedidos
+  ///@param estado Filtrar por estado: pendiente, en_preparacion, listo, entregado, cancelado
+  ///@param limit
+  ///@param offset
+  Future<chopper.Response<List<PedidoResponse>>> apiV1PedidosGet({
+    String? estado,
+    int? limit,
+    int? offset,
+  }) {
+    generatedMapping.putIfAbsent(
+        PedidoResponse, () => PedidoResponse.fromJsonFactory);
+
+    return _apiV1PedidosGet(estado: estado, limit: limit, offset: offset);
+  }
+
+  ///Listar Pedidos
+  ///@param estado Filtrar por estado: pendiente, en_preparacion, listo, entregado, cancelado
+  ///@param limit
+  ///@param offset
+  @Get(path: '/api/v1/pedidos/')
+  Future<chopper.Response<List<PedidoResponse>>> _apiV1PedidosGet({
+    @Query('estado') String? estado,
+    @Query('limit') int? limit,
+    @Query('offset') int? offset,
+  });
+
+  ///Obtener Pedido
+  ///@param pedido_id
+  Future<chopper.Response<PedidoResponse>> apiV1PedidosPedidoIdGet(
+      {required String? pedidoId}) {
+    generatedMapping.putIfAbsent(
+        PedidoResponse, () => PedidoResponse.fromJsonFactory);
+
+    return _apiV1PedidosPedidoIdGet(pedidoId: pedidoId);
+  }
+
+  ///Obtener Pedido
+  ///@param pedido_id
+  @Get(path: '/api/v1/pedidos/{pedido_id}')
+  Future<chopper.Response<PedidoResponse>> _apiV1PedidosPedidoIdGet(
+      {@Path('pedido_id') required String? pedidoId});
+
+  ///Cancelar Pedido
+  ///@param pedido_id
+  Future<chopper.Response<PedidoResponse>> apiV1PedidosPedidoIdDelete(
+      {required String? pedidoId}) {
+    generatedMapping.putIfAbsent(
+        PedidoResponse, () => PedidoResponse.fromJsonFactory);
+
+    return _apiV1PedidosPedidoIdDelete(pedidoId: pedidoId);
+  }
+
+  ///Cancelar Pedido
+  ///@param pedido_id
+  @Delete(path: '/api/v1/pedidos/{pedido_id}')
+  Future<chopper.Response<PedidoResponse>> _apiV1PedidosPedidoIdDelete(
+      {@Path('pedido_id') required String? pedidoId});
+
+  ///Cambiar Estado Pedido
+  ///@param pedido_id
+  ///@param nuevo_estado
+  Future<chopper.Response<PedidoResponse>> apiV1PedidosPedidoIdEstadoPatch({
+    required String? pedidoId,
+    required String? nuevoEstado,
+  }) {
+    generatedMapping.putIfAbsent(
+        PedidoResponse, () => PedidoResponse.fromJsonFactory);
+
+    return _apiV1PedidosPedidoIdEstadoPatch(
+        pedidoId: pedidoId, nuevoEstado: nuevoEstado);
+  }
+
+  ///Cambiar Estado Pedido
+  ///@param pedido_id
+  ///@param nuevo_estado
+  @Patch(
+    path: '/api/v1/pedidos/{pedido_id}/estado',
+    optionalBody: true,
+  )
+  Future<chopper.Response<PedidoResponse>> _apiV1PedidosPedidoIdEstadoPatch({
+    @Path('pedido_id') required String? pedidoId,
+    @Query('nuevo_estado') required String? nuevoEstado,
   });
 
   ///Health Check

@@ -171,6 +171,43 @@ Map<String, dynamic> _$InsumoUpdateToJson(InsumoUpdate instance) =>
       'alerta_minimo': instance.alertaMinimo,
     };
 
+LineaPedidoCreate _$LineaPedidoCreateFromJson(Map<String, dynamic> json) =>
+    LineaPedidoCreate(
+      nombreProducto: json['nombre_producto'] as String,
+      cantidadPorciones: (json['cantidad_porciones'] as num).toInt(),
+      precioAcordadoMxn: json['precio_acordado_mxn'],
+      recetaId: json['receta_id'],
+    );
+
+Map<String, dynamic> _$LineaPedidoCreateToJson(LineaPedidoCreate instance) =>
+    <String, dynamic>{
+      'nombre_producto': instance.nombreProducto,
+      'cantidad_porciones': instance.cantidadPorciones,
+      'precio_acordado_mxn': instance.precioAcordadoMxn,
+      'receta_id': instance.recetaId,
+    };
+
+LineaPedidoResponse _$LineaPedidoResponseFromJson(Map<String, dynamic> json) =>
+    LineaPedidoResponse(
+      nombreProducto: json['nombre_producto'] as String,
+      cantidadPorciones: (json['cantidad_porciones'] as num).toInt(),
+      precioAcordadoMxn: json['precio_acordado_mxn'] as String,
+      recetaId: json['receta_id'],
+      id: json['id'] as String,
+      pedidoId: json['pedido_id'] as String,
+    );
+
+Map<String, dynamic> _$LineaPedidoResponseToJson(
+        LineaPedidoResponse instance) =>
+    <String, dynamic>{
+      'nombre_producto': instance.nombreProducto,
+      'cantidad_porciones': instance.cantidadPorciones,
+      'precio_acordado_mxn': instance.precioAcordadoMxn,
+      'receta_id': instance.recetaId,
+      'id': instance.id,
+      'pedido_id': instance.pedidoId,
+    };
+
 MovimientoCreate _$MovimientoCreateFromJson(Map<String, dynamic> json) =>
     MovimientoCreate(
       tipo: movimientoCreateTipoFromJson(json['tipo']),
@@ -183,6 +220,28 @@ Map<String, dynamic> _$MovimientoCreateToJson(MovimientoCreate instance) =>
       'tipo': movimientoCreateTipoToJson(instance.tipo),
       'cantidad': instance.cantidad,
       'motivo': movimientoCreateMotivoToJson(instance.motivo),
+    };
+
+MovimientoResponse _$MovimientoResponseFromJson(Map<String, dynamic> json) =>
+    MovimientoResponse(
+      id: json['id'] as String,
+      insumoId: json['insumo_id'] as String,
+      usuarioId: json['usuario_id'] as String,
+      tipo: json['tipo'] as String,
+      cantidad: json['cantidad'] as String,
+      motivo: json['motivo'] as String,
+      fecha: DateTime.parse(json['fecha'] as String),
+    );
+
+Map<String, dynamic> _$MovimientoResponseToJson(MovimientoResponse instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'insumo_id': instance.insumoId,
+      'usuario_id': instance.usuarioId,
+      'tipo': instance.tipo,
+      'cantidad': instance.cantidad,
+      'motivo': instance.motivo,
+      'fecha': instance.fecha.toIso8601String(),
     };
 
 PasoCreate _$PasoCreateFromJson(Map<String, dynamic> json) => PasoCreate(
@@ -215,6 +274,61 @@ Map<String, dynamic> _$PasoResponseToJson(PasoResponse instance) =>
       'duracion_segundos': instance.duracionSegundos,
       'es_critico': instance.esCritico,
       'id': instance.id,
+    };
+
+PedidoCreate _$PedidoCreateFromJson(Map<String, dynamic> json) => PedidoCreate(
+      clienteNombre: json['cliente_nombre'] as String,
+      clienteWhatsapp: json['cliente_whatsapp'],
+      fechaEntrega: DateTime.parse(json['fecha_entrega'] as String),
+      puntoEntrega: json['punto_entrega'],
+      notas: json['notas'],
+      lineas: (json['lineas'] as List<dynamic>?)
+              ?.map(
+                  (e) => LineaPedidoCreate.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+
+Map<String, dynamic> _$PedidoCreateToJson(PedidoCreate instance) =>
+    <String, dynamic>{
+      'cliente_nombre': instance.clienteNombre,
+      'cliente_whatsapp': instance.clienteWhatsapp,
+      'fecha_entrega': instance.fechaEntrega.toIso8601String(),
+      'punto_entrega': instance.puntoEntrega,
+      'notas': instance.notas,
+      'lineas': instance.lineas.map((e) => e.toJson()).toList(),
+    };
+
+PedidoResponse _$PedidoResponseFromJson(Map<String, dynamic> json) =>
+    PedidoResponse(
+      id: json['id'] as String,
+      usuarioId: json['usuario_id'] as String,
+      clienteNombre: json['cliente_nombre'] as String,
+      clienteWhatsapp: json['cliente_whatsapp'],
+      fechaEntrega: DateTime.parse(json['fecha_entrega'] as String),
+      puntoEntrega: json['punto_entrega'],
+      estado: json['estado'] as String,
+      notas: json['notas'],
+      lineas: (json['lineas'] as List<dynamic>?)
+              ?.map((e) =>
+                  LineaPedidoResponse.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      whatsappUrl: json['whatsapp_url'],
+    );
+
+Map<String, dynamic> _$PedidoResponseToJson(PedidoResponse instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'usuario_id': instance.usuarioId,
+      'cliente_nombre': instance.clienteNombre,
+      'cliente_whatsapp': instance.clienteWhatsapp,
+      'fecha_entrega': instance.fechaEntrega.toIso8601String(),
+      'punto_entrega': instance.puntoEntrega,
+      'estado': instance.estado,
+      'notas': instance.notas,
+      'lineas': instance.lineas.map((e) => e.toJson()).toList(),
+      'whatsapp_url': instance.whatsappUrl,
     };
 
 RecetaCreate _$RecetaCreateFromJson(Map<String, dynamic> json) => RecetaCreate(
@@ -284,6 +398,8 @@ RecetaUpdate _$RecetaUpdateFromJson(Map<String, dynamic> json) => RecetaUpdate(
       nombre: json['nombre'],
       porciones: json['porciones'],
       margenPct: json['margen_pct'],
+      ingredientes: json['ingredientes'],
+      pasos: json['pasos'],
     );
 
 Map<String, dynamic> _$RecetaUpdateToJson(RecetaUpdate instance) =>
@@ -291,6 +407,8 @@ Map<String, dynamic> _$RecetaUpdateToJson(RecetaUpdate instance) =>
       'nombre': instance.nombre,
       'porciones': instance.porciones,
       'margen_pct': instance.margenPct,
+      'ingredientes': instance.ingredientes,
+      'pasos': instance.pasos,
     };
 
 ToggleGastoRequest _$ToggleGastoRequestFromJson(Map<String, dynamic> json) =>
