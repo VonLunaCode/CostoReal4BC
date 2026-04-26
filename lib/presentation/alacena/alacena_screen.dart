@@ -2,9 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
+import './movimiento_stock_bottom_sheet.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
 import '../widgets/kitchy_bottom_nav.dart';
 import 'movimiento_stock_bottom_sheet.dart';
+
+String formatCantidad(String raw, String unidad) {
+  final val = double.tryParse(raw) ?? 0.0;
+  final display = val == val.truncateToDouble()
+      ? val.toInt().toString()
+      : val.toString();
+  return '$display$unidad restantes';
+}
+
 
 /// Provider que gestiona la lista de insumos desde el backend.
 final alacenaProvider = FutureProvider.autoDispose<List<InsumoResponse>>((ref) async {
@@ -214,121 +224,193 @@ enum _CardType { critical, warning, normal }
 class _InsumoCard extends ConsumerWidget {
   final InsumoResponse insumo;
   final _CardType type;
-
   const _InsumoCard({required this.insumo, required this.type});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF4A4A4A).withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+
+    return Dismissible(
+      key: ValueKey(insumo.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFDC2626),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context.push('/alacena/${insumo.id}'),
-          onLongPress: () => showMovimientoStockBottomSheet(
-            context: context,
-            insumo: insumo,
-            onMovimientoRegistrado: () => ref.invalidate(alacenaProvider),
+      confirmDismiss: (_) async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text(
+              '¿Eliminar insumo?',
+              style: TextStyle(fontFamily: 'Georgia', fontWeight: FontWeight.bold),
+            ),
+            content: Text('¿Seguro que deseas eliminar "${insumo.nombre}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancelar', style: TextStyle(color: Color(0xFF718096))),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFDC2626),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (type == _CardType.critical || type == _CardType.warning) ...[
-                  if (type == _CardType.critical)
-                    const _AlertBadge(
-                      label: 'STOCK BAJO',
-                      icon: Icons.inventory_2_outlined,
-                      color: Color(0xFFDC2626),
-                      bgColor: Color(0xFFFDE8E8),
-                    ),
-                  if (type == _CardType.warning)
-                    const _AlertBadge(
-                      label: 'PRECIO DESACTUALIZADO',
-                      icon: Icons.warning_amber_rounded,
-                      color: Color(0xFFD97706),
-                      bgColor: Color(0xFFFEF3C7),
-                    ),
-                  const SizedBox(height: 12),
-                ],
-                
-                Row(
-                  children: [
-                    // Imagen / Icono de Insumo
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2C2623), // Dark background matching the image placeholder
-                        borderRadius: BorderRadius.circular(12),
+        );
+
+        if (confirmed != true) return false;
+
+        try {
+          final api = ref.read(apiProvider);
+          final response = await api.apiV1InsumosIdDelete(id: insumo.id);
+          if (response.isSuccessful) {
+            ref.invalidate(alacenaProvider);
+            return true;
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Error al eliminar el insumo'),
+                  backgroundColor: Color(0xFFDC2626),
+                ),
+              );
+            }
+            return false;
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $e'),
+                backgroundColor: const Color(0xFFDC2626),
+              ),
+            );
+          }
+          return false;
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4A4A4A).withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push('/alacena/${insumo.id}'),
+            onLongPress: () => showMovimientoStockBottomSheet(
+              context: context,
+              insumo: insumo,
+              onMovimientoRegistrado: () => ref.invalidate(alacenaProvider),
+            ),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (type == _CardType.critical || type == _CardType.warning) ...[
+                    if (type == _CardType.critical)
+                      const _AlertBadge(
+                        label: 'STOCK BAJO',
+                        icon: Icons.inventory_2_outlined,
+                        color: Color(0xFFDC2626),
+                        bgColor: Color(0xFFFDE8E8),
                       ),
-                      child: Center(
-                        child: Text(
-                          insumo.nombre.substring(0, 1).toUpperCase(),
-                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    if (type == _CardType.warning)
+                      const _AlertBadge(
+                        label: 'PRECIO DESACTUALIZADO',
+                        icon: Icons.warning_amber_rounded,
+                        color: Color(0xFFD97706),
+                        bgColor: Color(0xFFFEF3C7),
+                      ),
+                    const SizedBox(height: 12),
+                  ],
+                  
+                  Row(
+                    children: [
+                      // Imagen / Icono de Insumo
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2C2623), // Dark background matching the image placeholder
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            insumo.nombre.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 14),
-                    // Información
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            insumo.nombre,
-                            style: const TextStyle(
-                              fontFamily: 'Georgia',
-                              fontSize: 16,
-                              color: Color(0xFF2C2623),
-                              height: 1.2,
+                      const SizedBox(width: 14),
+                      // Información
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              insumo.nombre,
+                              style: const TextStyle(
+                                fontFamily: 'Georgia',
+                                fontSize: 16,
+                                color: Color(0xFF2C2623),
+                                height: 1.2,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${insumo.cantidadActual}${insumo.unidad.value} restantes',
-                            style: const TextStyle(
-                              color: Color(0xFF807667),
-                              fontSize: 12,
+                            const SizedBox(height: 4),
+                            Text(
+                              formatCantidad(insumo.cantidadActual, insumo.unidad.value ?? ''),
+                              style: const TextStyle(
+                                color: Color(0xFF807667),
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    // Conditional "ULT. COMPRA" info if type is normal
-                    if (type == _CardType.normal) ...[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text(
-                            'ÚLT. COMPRA',
-                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: Color(0xFFA0AEC0)),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Hace ${now.difference(insumo.fechaUltimoPrecio).inDays} días',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2C2623)),
-                          ),
-                        ],
-                      ),
+                      // Conditional "ULT. COMPRA" info if type is normal
+                      if (type == _CardType.normal) ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'ÚLT. COMPRA',
+                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: Color(0xFFA0AEC0)),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Hace ${now.difference(insumo.fechaUltimoPrecio).inDays} días',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2C2623)),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

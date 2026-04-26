@@ -8,7 +8,8 @@ import './recetas_providers.dart';
 import './models/receta_form_data.dart';
 
 class RecetaFormScreen extends ConsumerStatefulWidget {
-  const RecetaFormScreen({super.key});
+  final RecetaResponse? recetaExistente;
+  const RecetaFormScreen({super.key, this.recetaExistente});
 
   @override
   ConsumerState<RecetaFormScreen> createState() => _RecetaFormScreenState();
@@ -26,10 +27,44 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
   bool _isSaving = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.recetaExistente != null) {
+      final r = widget.recetaExistente!;
+      _nombreController.text = r.nombre;
+      _porcionesController.text = r.porciones.toString();
+      
+      _ingredientes.clear();
+      for (var i in r.ingredientes) {
+        _ingredientes.add(IngredienteFormData()
+          ..insumo = i.insumo
+          ..cantidad = i.cantidadUsada
+          ..unidad = i.unidad);
+      }
+      
+      _pasos.clear();
+      for (var p in r.pasos) {
+        _pasos.add(PasoFormData()
+          ..descripcion = p.descripcion
+          ..duracionSegundos = p.duracionSegundos
+          ..esCritico = p.esCritico ?? false);
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _nombreController.dispose();
     _porcionesController.dispose();
     super.dispose();
+  }
+
+  bool _isDirty() {
+    if (widget.recetaExistente == null) {
+      return _nombreController.text.isNotEmpty || _ingredientes.isNotEmpty;
+    }
+    // Lógica simplificada de dirty state
+    return true; // Por ahora habilitado si es edición, se puede refinar comparando strings
   }
 
   int _getTotalTime() {
@@ -56,11 +91,15 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
         nombre: _nombreController.text,
         porciones: int.parse(_porcionesController.text),
         margenPct: '30.0', // Valor por defecto
-        ingredientes: validIngredientes.map((i) => IngredienteCreate(
-          insumoId: i.insumo!.id,
-          cantidadUsada: i.cantidad,
-          unidad: i.insumo!.unidad.value ?? 'g',
-        )).toList(),
+        ingredientes: validIngredientes.map((i) {
+          final cantInput = double.tryParse(i.cantidad) ?? 0.0;
+          final unidadBase = i.insumo!.unidad.value ?? '';
+          return IngredienteCreate(
+            insumoId: i.insumo!.id,
+            cantidadUsada: cantInput.toString(),
+            unidad: unidadBase,
+          );
+        }).toList(),
         pasos: _pasos.asMap().entries.map((entry) => PasoCreate(
           orden: entry.key + 1,
           descripcion: entry.value.descripcion,
@@ -112,7 +151,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         children: [
                           GestureDetector(
                             onTap: () => context.pop(),
-                            child: const Icon(Icons.menu, color: Color(0xFF7A613E)), // Or back button styled similarly
+                            child: const Icon(Icons.arrow_back, color: Color(0xFF7A613E)), 
                           ),
                           const SizedBox(width: 8),
                           const Icon(Icons.restaurant, color: Color(0xFF7A613E), size: 20),
@@ -331,6 +370,32 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                           ),
                         );
                       },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Material(
+                            elevation: 8,
+                            borderRadius: BorderRadius.circular(16),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              child: ListView.builder(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                itemBuilder: (context, index) {
+                                  final option = options.elementAt(index);
+                                  return ListTile(
+                                    leading: const Icon(Icons.inventory_2_outlined, size: 18, color: Color(0xFF7A613E)),
+                                    title: Text(option.nombre, style: const TextStyle(fontSize: 14)),
+                                    subtitle: Text(option.unidad.value ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF807667))),
+                                    onTap: () => onSelected(option),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   loading: () => const LinearProgressIndicator(color: Color(0xFF7A613E)),
@@ -407,9 +472,10 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                     width: 220,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: _isSaving ? null : _saveReceta,
+                      onPressed: (_isSaving || !_isDirty()) ? null : _saveReceta,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7A613E),
+                        disabledBackgroundColor: const Color(0xFFD5D1C6),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                         elevation: 0,
@@ -471,7 +537,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
 
           // Stepper oval estilo Figma
           Container(
-            height: 32,
+            height: 36,
             decoration: BoxDecoration(
               color: const Color(0xFFEBE6D9),
               borderRadius: BorderRadius.circular(16),
@@ -489,9 +555,20 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                     child: Icon(Icons.remove, size: 16, color: Color(0xFF8B6B3D)),
                   ),
                 ),
+                SizedBox(
+                  width: 50,
+                  child: TextField(
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2623)),
+                    decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
+                    controller: TextEditingController(text: data.cantidad.isEmpty ? '0' : data.cantidad),
+                    onChanged: (v) => data.cantidad = v,
+                  ),
+                ),
                 Text(
-                  '${data.cantidad.isEmpty ? "0" : data.cantidad}${_getUnidadLabel(data)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2623)),
+                  data.insumo?.unidad.value ?? '',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF8B6B3D)),
                 ),
                 GestureDetector(
                   onTap: () {

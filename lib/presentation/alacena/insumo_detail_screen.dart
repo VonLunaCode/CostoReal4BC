@@ -15,6 +15,15 @@ final insumoByIdProvider = FutureProvider.autoDispose.family<InsumoResponse, Str
   return response.body!;
 });
 
+final insumoMovementsProvider = FutureProvider.autoDispose.family<List<MovimientoResponse>, String>((ref, id) async {
+  final api = ref.watch(apiProvider);
+  final response = await api.apiV1InsumosIdMovimientosGet(id: id);
+  if (!response.isSuccessful) {
+    throw Exception('Error al cargar movimientos: ${response.error}');
+  }
+  return response.body ?? [];
+});
+
 class InsumoDetailScreen extends ConsumerWidget {
   final String insumoId;
   const InsumoDetailScreen({super.key, required this.insumoId});
@@ -22,6 +31,7 @@ class InsumoDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final insumoAsync = ref.watch(insumoByIdProvider(insumoId));
+    final movimientosAsync = ref.watch(insumoMovementsProvider(insumoId));
 
     return Scaffold(
       backgroundColor: const Color(0xFFFBF9F4), 
@@ -47,8 +57,24 @@ class InsumoDetailScreen extends ConsumerWidget {
           loading: () => const SizedBox(),
           error: (_, __) => const Text('Error', style: TextStyle(color: Color(0xFF2C2623))),
         ),
-        actions: const [
-          Padding(
+        actions: [
+          insumoAsync.when(
+            data: (insumo) => IconButton(
+              icon: const Icon(Icons.edit_outlined, color: Color(0xFF2C2623)),
+              onPressed: () async {
+                final updated = await context.push<bool>(
+                  '/alacena/editar',
+                  extra: insumo,
+                );
+                if (updated == true || context.mounted) {
+                  ref.invalidate(insumoByIdProvider(insumoId));
+                }
+              },
+            ),
+            loading: () => const SizedBox(),
+            error: (_, __) => const SizedBox(),
+          ),
+          const Padding(
             padding: EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
               radius: 18,
@@ -282,24 +308,65 @@ class InsumoDetailScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                const _MovementItem(
-                  title: '+5kg',
-                  subtitle: 'Compra',
-                  date: '02 Abr, 2024',
-                  isEntry: true,
-                ),
-                const _MovementItem(
-                  title: '-2kg',
-                  subtitle: 'Receta Macarons',
-                  date: '01 Abr, 2024',
-                  isEntry: false,
-                ),
-                const _MovementItem(
-                  title: '-0.5kg',
-                  subtitle: 'Muestra degustación',
-                  date: '30 Mar, 2024',
-                  isEntry: false,
+                const SizedBox(height: 12),
+                movimientosAsync.when(
+                  loading: () => const Center(child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(color: Color(0xFFBC985D)),
+                  )),
+                  error: (err, _) => Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text('Error al cargar movimientos: $err', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                  ),
+                  data: (movimientos) {
+                    if (movimientos.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFF1F1E6)),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(Icons.history_toggle_off, size: 48, color: const Color(0xFF807667).withOpacity(0.3)),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'SIN MOVIMIENTOS',
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFF807667)),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Aún no hay registros de entradas o salidas para este insumo.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12, color: Color(0xFF807667)),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Column(
+                      children: movimientos.map((m) {
+                        final dateStr = _formatDate(m.fecha);
+                        final prefix = m.tipo == 'entrada' ? '+' : '-';
+                        final cant = double.tryParse(m.cantidad.toString()) ?? 0.0;
+                        final displayCant = cant == cant.toInt() ? cant.toInt().toString() : cant.toString();
+                        
+                        return _MovementItem(
+                          title: '$prefix$displayCant${insumo.unidad.value}',
+                          subtitle: _formatMotivo(m.motivo),
+                          date: dateStr,
+                          isEntry: m.tipo == 'entrada',
+                        );
+                      }).toList(),
+                    );
+                  },
                 ),
                 
                 const SizedBox(height: 120),
@@ -338,6 +405,21 @@ class InsumoDetailScreen extends ConsumerWidget {
       case 'ml': return 'Mililitros';
       case 'pz': return 'Piezas';
       default: return short ?? '';
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    // Formato simple: 02 Abr, 2024
+    final months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]}, ${date.year}';
+  }
+
+  String _formatMotivo(String motivo) {
+    switch (motivo) {
+      case 'compra': return 'Compra';
+      case 'uso_produccion': return 'Uso en Producción';
+      case 'merma': return 'Merma';
+      default: return motivo;
     }
   }
 

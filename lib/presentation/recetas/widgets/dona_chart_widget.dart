@@ -22,7 +22,8 @@ class DonaChartWidget extends StatelessWidget {
     final double bruts = precioVenta > 0 ? (precioVenta - (costoInsumos + costoEmpaque + costoEnergia)) : 0;
     
     final double pInsumos = (costoInsumos / total) * 100;
-    final double pOperativos = ((costoEmpaque + costoEnergia) / total) * 100;
+    final double pEmpaque = (costoEmpaque / total) * 100;
+    final double pEnergia = (costoEnergia / total) * 100;
     final double pBruta = (bruts > 0 ? bruts / total : 0) * 100;
 
     return Column(
@@ -46,7 +47,7 @@ class DonaChartWidget extends StatelessWidget {
                 PieChartData(
                   sectionsSpace: 0,
                   centerSpaceRadius: 60,
-                  sections: _buildChartSections(pInsumos, pOperativos, pBruta),
+                  sections: _buildChartSections(pInsumos, pEmpaque, pEnergia, pBruta),
                 ),
                 swapAnimationDuration: const Duration(milliseconds: 300),
               ),
@@ -66,7 +67,9 @@ class DonaChartWidget extends StatelessWidget {
           children: [
             _buildLegendItem('Insumos (Costo)', pInsumos, const Color(0xFF7A613E)),
             const SizedBox(height: 12),
-            _buildLegendItem('Gastos Operativos', pOperativos, const Color(0xFFD5D1C6)),
+            _buildLegendItem('Empaque', pEmpaque, const Color(0xFFD5D1C6)),
+            const SizedBox(height: 12),
+            _buildLegendItem('Energía', pEnergia, const Color(0xFFEBE6D9)),
             const SizedBox(height: 12),
             _buildLegendItem('Utilidad Bruta', pBruta, const Color(0xFF447A55)),
           ],
@@ -75,10 +78,11 @@ class DonaChartWidget extends StatelessWidget {
     );
   }
 
-  List<PieChartSectionData> _buildChartSections(double pIns, double pOps, double pBru) {
+  List<PieChartSectionData> _buildChartSections(double pIns, double pEmp, double pEne, double pBru) {
     final List<PieChartSectionData> sections = [];
     if (pIns > 0) sections.add(_section(pIns, const Color(0xFF7A613E)));
-    if (pOps > 0) sections.add(_section(pOps, const Color(0xFFD5D1C6)));
+    if (pEmp > 0) sections.add(_section(pEmp, const Color(0xFFD5D1C6)));
+    if (pEne > 0) sections.add(_section(pEne, const Color(0xFFEBE6D9)));
     if (pBru > 0) sections.add(_section(pBru, const Color(0xFF447A55)));
     
     if (sections.isEmpty) {

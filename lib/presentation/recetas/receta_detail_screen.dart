@@ -25,10 +25,33 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
   bool _gasLuzActivo = false;
   double _gasLuzPorcentaje = 0.0;
   bool _isSaving = false;
+  bool _isInitialized = false;
+
+  void _initializeState(RecetaResponse receta) {
+    if (_isInitialized) return;
+    
+    _margen = double.tryParse(receta.margenPct) ?? 30.0;
+    
+    for (var gasto in receta.gastosOcultos) {
+      if (gasto.tipo == enums.GastoOcultoResponseTipo.empaque) {
+        _empaqueActivo = gasto.activo ?? false;
+        _empaqueValor = double.tryParse(gasto.valor) ?? 0.0;
+      } else if (gasto.tipo == enums.GastoOcultoResponseTipo.gasLuz) {
+        _gasLuzActivo = gasto.activo ?? false;
+        _gasLuzPorcentaje = double.tryParse(gasto.valor) ?? 0.0;
+      }
+    }
+    
+    _isInitialized = true;
+  }
 
   @override
   Widget build(BuildContext context) {
     final recetaAsync = ref.watch(recetaDetailProvider(widget.id));
+    
+    // Inicializar estado una vez que la receta cargue
+    recetaAsync.whenData((receta) => _initializeState(receta));
+    
     final formatter = NumberFormat.currency(locale: 'es_MX', symbol: '\$');
 
     return Scaffold(
@@ -79,7 +102,7 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
                               children: [
                                 GestureDetector(
                                   onTap: () => Navigator.of(context).pop(),
-                                  child: const Icon(Icons.menu, color: Color(0xFF7A613E)), // Or back button styled similarly
+                                  child: const Icon(Icons.arrow_back, color: Color(0xFF7A613E)), 
                                 ),
                                 const SizedBox(width: 8),
                                 const Icon(Icons.restaurant, color: Color(0xFF7A613E), size: 20),
@@ -271,38 +294,57 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
     try {
       final api = ref.read(apiProvider);
       
-      // Enviar empaque
-      await api.apiV1RecetasIdGastosOcultosPost(
-        id: receta.id,
-        body: GastoOcultoCreate(
-          tipo: enums.GastoOcultoCreateTipo.empaque,
-          valor: _empaqueValor.toString(),
-          esPorcentaje: false,
-          activo: _empaqueActivo,
+      // Orquestar las 3 peticiones en paralelo
+      await Future.wait([
+        // 1. Actualizar el Margen de la receta
+        api.apiV1RecetasIdPut(
+          id: receta.id,
+          body: RecetaUpdate(
+            margenPct: _margen.toString(),
+          ),
         ),
-      );
-
-      // Enviar gas/luz
-      await api.apiV1RecetasIdGastosOcultosPost(
-        id: receta.id,
-        body: GastoOcultoCreate(
-          tipo: enums.GastoOcultoCreateTipo.gasLuz,
-          valor: _gasLuzPorcentaje.toString(),
-          esPorcentaje: true,
-          activo: _gasLuzActivo,
+        
+        // 2. Actualizar Gasto de Empaque
+        api.apiV1RecetasIdGastosOcultosPost(
+          id: receta.id,
+          body: GastoOcultoCreate(
+            tipo: enums.GastoOcultoCreateTipo.empaque,
+            valor: _empaqueValor.toString(),
+            esPorcentaje: false,
+            activo: _empaqueActivo,
+          ),
         ),
-      );
 
-      // (Opcional) Si quieres actualizar también el margen al backend,
-      // necesitarías otro endpoint para actualizar margen de la receta.
-      // O puedes intentar un PATCH general a la receta en un futuro.
+        // 3. Actualizar Gasto de Gas/Luz (Energías)
+        api.apiV1RecetasIdGastosOcultosPost(
+          id: receta.id,
+          body: GastoOcultoCreate(
+            tipo: enums.GastoOcultoCreateTipo.gasLuz,
+            valor: _gasLuzPorcentaje.toString(),
+            esPorcentaje: true,
+            activo: _gasLuzActivo,
+          ),
+        ),
+      ]);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Simulación guardada con éxito'), backgroundColor: Color(0xFF6A9B7A)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Simulación y parámetros guardados con éxito'), 
+            backgroundColor: Color(0xFF16A34A)
+          )
+        );
         ref.invalidate(recetaDetailProvider(widget.id));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar la simulación: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+          )
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

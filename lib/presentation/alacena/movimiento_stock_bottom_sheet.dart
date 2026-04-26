@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/api_provider.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
 import '../../data/api_generated/openapi.enums.swagger.dart';
+import './alacena_screen.dart'; // Aquí está el alacenaProvider
 
 /// Función global para mostrar el bottom sheet de movimientos
 void showMovimientoStockBottomSheet({
@@ -41,16 +42,36 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
   final TextEditingController _cantidadController = TextEditingController();
   
   MovimientoCreateMotivo _motivoSeleccionado = MovimientoCreateMotivo.compra;
-  String? _errorMessage;
   bool _isLoading = false;
+  late String _unidadSeleccionada;
+
+  @override
+  void initState() {
+    super.initState();
+    _unidadSeleccionada = widget.insumo.unidad.value ?? 'unidad';
+  }
 
   double get _cantidadActual => double.tryParse(widget.insumo.cantidadActual) ?? 0.0;
   
+  List<String> get _opcionesUnidad {
+    final base = widget.insumo.unidad.value ?? 'unidad';
+    if (base == 'kg') return ['kg', 'g'];
+    if (base == 'l') return ['l', 'ml'];
+    return [base];
+  }
+
+  double get _cantidadConvertida {
+    final input = double.tryParse(_cantidadController.text) ?? 0.0;
+    if (_unidadSeleccionada == 'g' || _unidadSeleccionada == 'ml') {
+      return input / 1000;
+    }
+    return input;
+  }
+
   double get _nuevaCantidad {
-    final cantidadIngresada = double.tryParse(_cantidadController.text) ?? 0.0;
     return _isSelected[0] 
-        ? _cantidadActual + cantidadIngresada 
-        : _cantidadActual - cantidadIngresada;
+        ? _cantidadActual + _cantidadConvertida 
+        : _cantidadActual - _cantidadConvertida;
   }
 
   @override
@@ -59,36 +80,68 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  Future<void> _saveMovimiento() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    final api = ref.read(apiProvider);
+    
+    setState(() => _isLoading = true);
     try {
+      final api = ref.read(apiProvider);
       final response = await api.apiV1InsumosIdMovimientosPost(
         id: widget.insumo.id,
         body: MovimientoCreate(
           tipo: _isSelected[0] ? MovimientoCreateTipo.entrada : MovimientoCreateTipo.salida,
-          cantidad: _cantidadController.text,
+          cantidad: _cantidadConvertida.toString(),
           motivo: _motivoSeleccionado,
         ),
       );
+      
+      if (!mounted) return;
 
       if (response.isSuccessful) {
         widget.onMovimientoRegistrado();
-        if (mounted) Navigator.pop(context);
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Movimiento registrado con éxito'), 
+            backgroundColor: Color(0xFF16A34A)
+          ),
+        );
       } else {
-        setState(() => _errorMessage = response.error?.toString() ?? 'Error al registrar');
+        final errorMsg = _parsearError(response.error);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(child: Text(errorMsg, style: const TextStyle(fontWeight: FontWeight.w500))),
+              ],
+            ),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
       }
     } catch (e) {
-      setState(() => _errorMessage = e.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error inesperado: $e'), backgroundColor: const Color(0xFFDC2626)),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  String _parsearError(dynamic error) {
+    if (error == null) return 'Ocurrió un error al registrar el movimiento.';
+    final raw = error.toString();
+    final match = RegExp(r'"detail"\s*:\s*"([^"]+)"').firstMatch(raw);
+    if (match != null) return match.group(1)!;
+    if (raw.toLowerCase().contains('stock insuficiente')) {
+      return 'Stock insuficiente para registrar esta salida.';
+    }
+    return 'No se pudo completar el movimiento. Verifica los datos e intenta de nuevo.';
   }
 
   @override
@@ -117,7 +170,6 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
             ),
             const SizedBox(height: 24),
             
-            // Toggle Buttons para Tipo
             Center(
               child: ToggleButtons(
                 isSelected: _isSelected,
@@ -131,7 +183,7 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
                 borderRadius: BorderRadius.circular(12),
                 constraints: BoxConstraints(minWidth: (MediaQuery.of(context).size.width - 64) / 2, minHeight: 48),
                 selectedColor: Colors.white,
-                fillColor: const Color(0xFFC29F5C),
+                fillColor: _isSelected[0] ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
                 children: const [
                   Text('ENTRADA', style: TextStyle(fontWeight: FontWeight.bold)),
                   Text('SALIDA', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -149,9 +201,22 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
                 filled: true,
                 fillColor: const Color(0xFFF1F1F1),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                suffixText: widget.insumo.unidad.value,
+                suffix: _opcionesUnidad.length > 1
+                    ? DropdownButton<String>(
+                        value: _unidadSeleccionada,
+                        underline: const SizedBox(),
+                        isDense: true,
+                        items: _opcionesUnidad
+                            .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                            .toList(),
+                        onChanged: (val) => setState(() => _unidadSeleccionada = val!),
+                      )
+                    : Text(
+                        widget.insumo.unidad.value ?? '',
+                        style: const TextStyle(color: Color(0xFF718096)),
+                      ),
               ),
-              onChanged: (_) => setState(() {}), // Disparar rebuild para el preview
+              onChanged: (_) => setState(() {}),
               validator: (val) => (double.tryParse(val ?? '') ?? 0) <= 0 ? 'Monto inválido' : null,
             ),
             const SizedBox(height: 24),
@@ -182,7 +247,6 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
             ),
             const SizedBox(height: 24),
 
-            // Stock Preview Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -202,7 +266,7 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('ACTUAL', style: TextStyle(fontSize: 8, color: Color(0xFF718096))),
-                          Text('${_cantidadActual.toStringAsFixed(1)} ${widget.insumo.unidad.value}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text('${_cantidadActual.toStringAsFixed(1)} ${widget.insumo.unidad.value ?? ""}', style: const TextStyle(fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const Icon(Icons.arrow_forward, color: Color(0xFFCBD5E0), size: 16),
@@ -211,7 +275,7 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
                         children: [
                           const Text('NUEVO', style: TextStyle(fontSize: 8, color: Color(0xFF718096))),
                           Text(
-                            '${_nuevaCantidad.toStringAsFixed(1)} ${widget.insumo.unidad.value}', 
+                            '${_nuevaCantidad.toStringAsFixed(1)} ${widget.insumo.unidad.value ?? ""}', 
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC29F5C))
                           ),
                         ],
@@ -222,19 +286,15 @@ class _MovimientoStockBottomSheetState extends ConsumerState<MovimientoStockBott
               ),
             ),
 
-            if (_errorMessage != null) ...[
-              const SizedBox(height: 16),
-              Text(_errorMessage!, style: const TextStyle(color: Color(0xFFDC2626), fontSize: 13)),
-            ],
-
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: _isLoading ? null : _submit,
+              onPressed: _isLoading ? null : _saveMovimiento,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFC29F5C),
+                backgroundColor: _isSelected[0] ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(54),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
               ),
               child: _isLoading 
                   ? const CircularProgressIndicator(color: Colors.white) 

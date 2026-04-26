@@ -75,7 +75,13 @@ class _GastosOcultosWidgetState extends State<GastosOcultosWidget> {
                 inactiveThumbColor: Colors.white,
                 inactiveTrackColor: const Color(0xFFD5D1C6),
                 onChanged: (val) {
-                  setState(() => _empaqueActivo = val);
+                  setState(() {
+                    _empaqueActivo = val;
+                    if (val && _empaqueValor == 0.0) {
+                      _empaqueValor = 15.0;
+                      _empaqueController.text = '15.0';
+                    }
+                  });
                   _notifyChanges();
                 },
               ),
@@ -137,7 +143,13 @@ class _GastosOcultosWidgetState extends State<GastosOcultosWidget> {
                 inactiveThumbColor: Colors.white,
                 inactiveTrackColor: const Color(0xFFD5D1C6),
                 onChanged: (val) {
-                  setState(() => _gasLuzActivo = val);
+                  setState(() {
+                    _gasLuzActivo = val;
+                    if (val && _gasLuzPorcentaje == 0.0) {
+                      _gasLuzPorcentaje = 10.0;
+                      _gasLuzController.text = '10';
+                    }
+                  });
                   _notifyChanges();
                 },
               ),

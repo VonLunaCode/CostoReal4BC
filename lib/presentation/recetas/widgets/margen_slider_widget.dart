@@ -79,9 +79,9 @@ class _MargenSliderWidgetState extends State<MargenSliderWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildTickLabel('20%'),
-              _buildTickLabel('50%'),
+              _buildTickLabel('0%'),
               _buildTickLabel('100%'),
+              _buildTickLabel('200%'),
             ],
           ),
         ),

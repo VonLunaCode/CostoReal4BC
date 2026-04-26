@@ -36,9 +36,7 @@ class KitchyBottomNav extends StatelessWidget {
                   icon: Icons.shopping_cart_outlined,
                   label: 'Pedidos',
                   isActive: currentIndex == 0,
-                  onTap: () {
-                    // Usually goes to /pedidos, for now route to / if there is no pedidos
-                  },
+                  onTap: () => context.go('/agenda'),
                 ),
                 _NavItem(
                   icon: Icons.menu_book,

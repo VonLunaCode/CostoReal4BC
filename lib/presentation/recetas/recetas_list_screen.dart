@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
+import '../../data/api_provider.dart';
+
 import '../widgets/kitchy_bottom_nav.dart';
 import './recetas_providers.dart';
 
@@ -214,149 +216,157 @@ class _RecetasListScreenState extends ConsumerState<RecetasListScreen> {
   }
 }
 
-class RecetaCardWidget extends StatelessWidget {
+class RecetaCardWidget extends ConsumerWidget {
   final RecetaResponse receta;
   const RecetaCardWidget({super.key, required this.receta});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final double? costo = double.tryParse(receta.costoCalculado ?? '');
 
-    return GestureDetector(
-      onTap: () => context.push('/recetas/${receta.id}'),
-      child: Container(
+    return Dismissible(
+      key: ValueKey(receta.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFDC2626),
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 6),
-            ),
-          ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── IMAGEN ──
-            Stack(
-              children: [
-                // Placeholder de imagen con gradiente
-                Container(
-                  height: 160,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+      ),
+      confirmDismiss: (_) async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(
+              '¿Eliminarás ${receta.nombre}?',
+              style: const TextStyle(fontFamily: 'Georgia', fontWeight: FontWeight.bold),
+            ),
+            content: const Text('Perderá sus costos calculados.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancelar', style: TextStyle(color: Color(0xFF718096))),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFDC2626),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed != true) return false;
+
+        try {
+          final api = ref.read(apiProvider);
+          final response = await api.apiV1RecetasIdDelete(id: receta.id);
+          if (response.isSuccessful) {
+            ref.invalidate(recetasProvider);
+            return true;
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Error al eliminar la receta'),
+                  backgroundColor: Color(0xFFDC2626),
+                ),
+              );
+            }
+            return false;
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $e'),
+                backgroundColor: const Color(0xFFDC2626),
+              ),
+            );
+          }
+          return false;
+        }
+      },
+      child: GestureDetector(
+        onTap: () => context.push('/recetas/${receta.id}'),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 6))],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    height: 160,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                      gradient: LinearGradient(colors: [
                         const Color(0xFFBC985D).withOpacity(0.3),
                         const Color(0xFF1A2B4A).withOpacity(0.4),
-                      ],
+                      ]),
                     ),
+                    child: Center(child: Icon(Icons.restaurant_menu, size: 60, color: Colors.white.withOpacity(0.6))),
                   ),
-                  child: Center(
-                    child: Icon(
-                      Icons.restaurant_menu,
-                      size: 60,
-                      color: Colors.white.withOpacity(0.6),
-                    ),
-                  ),
-                ),
-                // Chip de porciones
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.55),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+                  Positioned(
+                    top: 12, right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.55), borderRadius: BorderRadius.circular(20)),
+                      child: Row(children: [
                         const Icon(Icons.people_outline, size: 14, color: Colors.white),
                         const SizedBox(width: 4),
-                        Text(
-                          '${receta.porciones} PORCIONES',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
+                        Text('${receta.porciones} PORCIONES', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                      ]),
                     ),
-                  ),
-                ),
-              ],
-            ),
-
-            // ── INFO ──
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          receta.nombre,
-                          style: const TextStyle(
-                            fontFamily: 'Georgia',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D3748),
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text(
-                            'COSTO/PORCIÓN',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                              color: Color(0xFFA0AEC0),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            costo != null
-                                ? '\$${(costo / receta.porciones).toStringAsFixed(2)}'
-                                : '—',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              color: costo != null ? const Color(0xFF16A34A) : const Color(0xFFA0AEC0),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    children: [
-                      _chip(_categoryFromMargen(receta.margenPct), const Color(0xFFF3EAD5), const Color(0xFFB8872A)),
-                      _chip('${receta.porciones} porc.', const Color(0xFFEBF5FF), const Color(0xFF2B6CB0)),
-                    ],
                   ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(receta.nombre, style: const TextStyle(fontFamily: 'Georgia', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D3748)))),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text('COSTO/PORCIÓN', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFA0AEC0))),
+                            Text(
+                              costo != null ? '\$${(costo / receta.porciones).toStringAsFixed(2)}' : '—',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: costo != null ? const Color(0xFF16A34A) : const Color(0xFFA0AEC0)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      children: [
+                        _chip(_categoryFromMargen(receta.margenPct), const Color(0xFFF3EAD5), const Color(0xFFB8872A)),
+                        _chip('${receta.porciones} porc.', const Color(0xFFEBF5FF), const Color(0xFF2B6CB0)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -372,19 +382,9 @@ class RecetaCardWidget extends StatelessWidget {
   Widget _chip(String label, Color bg, Color fg) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: fg,
-          letterSpacing: 0.5,
-        ),
-      ),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+      child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: fg, letterSpacing: 0.5)),
     );
   }
 }
+

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../presentation/auth_provider.dart';
@@ -12,6 +13,10 @@ import '../presentation/alacena/insumo_detail_screen.dart';
 import '../presentation/recetas/recetas_list_screen.dart';
 import '../presentation/recetas/receta_detail_screen.dart';
 import '../presentation/recetas/receta_form_screen.dart';
+import '../presentation/recetas/receta_ficha_screen.dart';
+import '../presentation/pedidos/agenda_screen.dart';
+import '../presentation/pedidos/nuevo_pedido_screen.dart';
+import '../presentation/pedidos/pedido_detail_screen.dart';
 import '../data/api_generated/openapi.models.swagger.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -69,7 +74,41 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: ':id',
                 builder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return RecetaDetailScreen(id: id);
+                  return RecetaFichaScreen(id: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'simulador',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return RecetaDetailScreen(id: id);
+                    },
+                  ),
+                  GoRoute(
+                    path: 'editar',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      final receta = state.extra as RecetaResponse?;
+                      return RecetaFormScreen(recetaExistente: receta);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'agenda',
+            builder: (context, state) => const AgendaScreen(),
+            routes: [
+              GoRoute(
+                path: 'crear',
+                builder: (context, state) => const NuevoPedidoScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return PedidoDetailScreen(pedidoId: id);
                 },
               ),
             ],
