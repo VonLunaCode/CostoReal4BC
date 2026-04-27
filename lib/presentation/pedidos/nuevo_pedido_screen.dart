@@ -28,7 +28,8 @@ class LineaFormData {
 }
 
 class NuevoPedidoScreen extends ConsumerStatefulWidget {
-  const NuevoPedidoScreen({super.key});
+  final PedidoResponse? pedidoExistente;
+  const NuevoPedidoScreen({super.key, this.pedidoExistente});
 
   @override
   ConsumerState<NuevoPedidoScreen> createState() => _NuevoPedidoScreenState();
@@ -38,10 +39,10 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
   final _formKey = GlobalKey<FormState>();
   
   // Controladores de texto para campos principales
-  final _nombreController = TextEditingController();
-  final _whatsappController = TextEditingController();
-  final _puntoEntregaController = TextEditingController();
-  final _notasController = TextEditingController();
+  late final TextEditingController _nombreController;
+  late final TextEditingController _whatsappController;
+  late final TextEditingController _puntoEntregaController;
+  late final TextEditingController _notasController;
 
   DateTime _fechaSeleccionada = DateTime.now();
   TimeOfDay? _horaSeleccionada;
@@ -49,6 +50,29 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
   
   // Lista dinámica de líneas
   List<LineaFormData> _lineas = [LineaFormData()];
+
+  @override
+  void initState() {
+    super.initState();
+    _nombreController = TextEditingController(text: widget.pedidoExistente?.clienteNombre);
+    _whatsappController = TextEditingController(text: widget.pedidoExistente?.clienteWhatsapp);
+    _puntoEntregaController = TextEditingController(text: widget.pedidoExistente?.puntoEntrega);
+    _notasController = TextEditingController(text: widget.pedidoExistente?.notas);
+
+    if (widget.pedidoExistente != null) {
+      final fechaLocal = widget.pedidoExistente!.fechaEntrega.toLocal();
+      _fechaSeleccionada = fechaLocal;
+      _horaSeleccionada = TimeOfDay.fromDateTime(fechaLocal);
+      
+      _lineas = widget.pedidoExistente!.lineas.map((l) => LineaFormData(
+        nombre: l.nombreProducto,
+        recetaId: l.recetaId,
+        cantidad: l.cantidadPorciones,
+        precio: l.precioAcordadoMxn.toString(),
+        precioUnitario: (double.tryParse(l.precioAcordadoMxn.toString()) ?? 0.0) / l.cantidadPorciones,
+      )).toList();
+    }
+  }
 
   @override
   void dispose() {
@@ -100,7 +124,8 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
       _horaSeleccionada!.minute,
     );
 
-    if (fechaEntregaFinal.isBefore(DateTime.now())) {
+    // Permitir editar pedidos que ya pasaron (por si acaso), pero no crear nuevos en el pasado
+    if (widget.pedidoExistente == null && fechaEntregaFinal.isBefore(DateTime.now())) {
       _mostrarError('La fecha de entrega debe ser en el futuro.');
       return;
     }
@@ -126,36 +151,72 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
         nombreProducto: l.nombre.trim(),
         recetaId: l.recetaId,
         cantidadPorciones: l.cantidad,
-        precioAcordadoMxn: double.tryParse(l.precio.trim()) ?? 0.0,
+        precioAcordadoMxn: l.precio.trim(),
       )).toList();
 
-      final body = PedidoCreate(
-        clienteNombre: _nombreController.text.trim(),
-        clienteWhatsapp: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
-        fechaEntrega: fechaEntregaFinal.toUtc(), // Asegurar UTC o formato correcto
-        puntoEntrega: _puntoEntregaController.text.trim().isEmpty ? null : _puntoEntregaController.text.trim(),
-        notas: _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
-        lineas: lineasPost,
-      );
-
       final api = ref.read(apiProvider);
-      final response = await api.apiV1PedidosPost(body: body);
-
-      if (response.isSuccessful) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Pedido registrado!'),
-            backgroundColor: Color(0xFF16A34A),
-          ),
+      
+      if (widget.pedidoExistente != null) {
+        // ACTUALIZACIÓN (PUT)
+        final body = PedidoUpdate(
+          clienteNombre: _nombreController.text.trim(),
+          clienteWhatsapp: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
+          fechaEntrega: fechaEntregaFinal.toUtc(),
+          puntoEntrega: _puntoEntregaController.text.trim().isEmpty ? null : _puntoEntregaController.text.trim(),
+          notas: _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
+          lineas: lineasPost,
         );
-        ref.invalidate(pedidosProvider); // Refrescar la lista principal
-        context.pop();
+        final bodyMap = body.toJson();
+        if (body.fechaEntrega != null && body.fechaEntrega is DateTime) {
+          bodyMap['fecha_entrega'] = (body.fechaEntrega as DateTime).toIso8601String();
+        }
+        if (body.lineas != null) {
+          bodyMap['lineas'] = body.lineas!.map((l) => l.toJson()).toList();
+        }
+
+        final response = await api.apiV1PedidosPedidoIdPut(
+          pedidoId: widget.pedidoExistente!.id, 
+          body: bodyMap,
+        );
+        
+        if (response.isSuccessful) {
+          ref.invalidate(pedidosProvider);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('¡Pedido actualizado!'), backgroundColor: Color(0xFF16A34A)),
+          );
+          ref.invalidate(pedidosProvider);
+          ref.invalidate(pedidoDetailProvider(widget.pedidoExistente!.id));
+          context.pop(true);
+        } else {
+          _mostrarError('Error al actualizar: ${response.error}');
+        }
       } else {
-        _mostrarError('Error del servidor: ${response.error}');
+        // CREACIÓN (POST)
+        final body = PedidoCreate(
+          clienteNombre: _nombreController.text.trim(),
+          clienteWhatsapp: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
+          fechaEntrega: fechaEntregaFinal.toUtc(),
+          puntoEntrega: _puntoEntregaController.text.trim().isEmpty ? null : _puntoEntregaController.text.trim(),
+          notas: _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
+          lineas: lineasPost,
+        );
+        final response = await api.apiV1PedidosPost(body: body);
+
+        if (response.isSuccessful) {
+          ref.invalidate(pedidosProvider);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('¡Pedido registrado!'), backgroundColor: Color(0xFF16A34A)),
+          );
+          ref.invalidate(pedidosProvider);
+          context.pop();
+        } else {
+          _mostrarError('Error del servidor: ${response.error}');
+        }
       }
     } catch (e) {
-      _mostrarError('Ocurrió un error inesperado.');
+      _mostrarError('Ocurrió un error inesperado: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -260,7 +321,10 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Nuevo Pedido', style: KitchyTypography.heading1),
+                    Text(
+                      widget.pedidoExistente != null ? 'Editar Pedido' : 'Nuevo Pedido', 
+                      style: KitchyTypography.heading1
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'Completa los detalles para agendar la entrega.',
@@ -525,31 +589,32 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
                                 final r = recetas.firstWhere((element) => element.id == val);
                                 _lineas[index].nombre = r.nombre;
                                 
-                                double costoInsumos = 0;
+                                double costoInsumosTotal = 0;
                                 for (var ing in r.ingredientes) {
                                   final pCompra = double.tryParse(ing.insumo.precioCompra.toString()) ?? 0.0;
                                   final cComprada = double.tryParse(ing.insumo.cantidadComprada.toString()) ?? 1.0;
                                   final cUsada = double.tryParse(ing.cantidadUsada.toString()) ?? 0.0;
                                   if (cComprada > 0) {
-                                    costoInsumos += (pCompra / cComprada) * cUsada;
+                                    costoInsumosTotal += (pCompra / cComprada) * cUsada;
                                   }
                                 }
                                 
-                                double costoGastos = 0;
+                                final porcionesBase = r.porciones > 0 ? r.porciones : 1;
+                                final costoInsumosPorPorcion = costoInsumosTotal / porcionesBase;
+                                
+                                double costoGastosPorPorcion = 0;
                                 for (var gasto in r.gastosOcultos) {
                                   if (gasto.activo == true) {
                                     final valor = double.tryParse(gasto.valor.toString()) ?? 0.0;
                                     if (gasto.esPorcentaje == true) {
-                                      costoGastos += costoInsumos * (valor / 100);
+                                      costoGastosPorPorcion += costoInsumosPorPorcion * (valor / 100);
                                     } else {
-                                      costoGastos += valor;
+                                      costoGastosPorPorcion += valor;
                                     }
                                   }
                                 }
                                 
-                                final costoTotal = costoInsumos + costoGastos;
-                                final porciones = r.porciones > 0 ? r.porciones : 1;
-                                final costoPorPorcion = costoTotal / porciones;
+                                final costoPorPorcion = costoInsumosPorPorcion + costoGastosPorPorcion;
                                 final margen = double.tryParse(r.margenPct.toString()) ?? 0.0;
                                 final precioSugerido = costoPorPorcion * (1 + (margen / 100));
                                 
@@ -569,9 +634,31 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      '\$${_lineas[index].precio}',
-                      style: KitchyTypography.priceTotal,
+                    Row(
+                      children: [
+                        const Text(r'$ ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: KitchyColors.textPrimary)),
+                        Expanded(
+                          child: TextFormField(
+                            key: ValueKey('price_${index}_${_lineas[index].precio}'), // Para forzar el refresco al autocompletar
+                            initialValue: _lineas[index].precio,
+                            style: KitchyTypography.priceTotal,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                            ),
+                            onChanged: (val) {
+                              _lineas[index].precio = val;
+                              // Al editar manualmente, recalculamos el unitario para que al mover cantidad sea coherente
+                              final total = double.tryParse(val) ?? 0.0;
+                              if (_lineas[index].cantidad > 0) {
+                                _lineas[index].precioUnitario = total / _lineas[index].cantidad;
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

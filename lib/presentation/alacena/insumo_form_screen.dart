@@ -24,6 +24,8 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
   
   InsumoResponseUnidad _unidadSeleccionada = InsumoResponseUnidad.kg;
   bool _isLoading = false;
+  late final String _initialPrecio;
+  late final String _initialCantidad;
 
   bool get _isEditing => widget.insumoExistente != null;
 
@@ -38,6 +40,14 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
     if (_isEditing) {
       _unidadSeleccionada = widget.insumoExistente!.unidad;
     }
+
+    _initialPrecio = widget.insumoExistente?.precioCompra ?? '';
+    _initialCantidad = widget.insumoExistente?.cantidadActual ?? '';
+
+    _precioController.addListener(() => setState(() {}));
+    _cantidadController.addListener(() => setState(() {}));
+    _nombreController.addListener(() => setState(() {}));
+    _alertaController.addListener(() => setState(() {}));
   }
 
   @override
@@ -47,6 +57,27 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
     _cantidadController.dispose();
     _alertaController.dispose();
     super.dispose();
+  }
+
+  String get _precioUnitario {
+    final precio = double.tryParse(_precioController.text) ?? 0.0;
+    final cantidad = double.tryParse(_cantidadController.text) ?? 0.0;
+    if (cantidad <= 0) return '—';
+    return (precio / cantidad).toStringAsFixed(2);
+  }
+
+  bool get _showCostWarning =>
+      _isEditing &&
+      (_precioController.text != _initialPrecio ||
+       _cantidadController.text != _initialCantidad);
+
+  bool get _isDirty {
+    if (!_isEditing) return true;
+    return _nombreController.text != (widget.insumoExistente?.nombre ?? '') ||
+           _precioController.text != _initialPrecio ||
+           _cantidadController.text != _initialCantidad ||
+           _alertaController.text != (widget.insumoExistente?.alertaMinimo ?? '0') ||
+           _unidadSeleccionada != widget.insumoExistente!.unidad;
   }
 
   Future<void> _save() async {
@@ -72,7 +103,7 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Insumo actualizado')),
             );
-            context.pop();
+            context.pop(true);
           }
         } else {
           throw Exception(response.error ?? 'Error al actualizar');
@@ -93,7 +124,7 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Insumo creado')),
             );
-            context.pop();
+            context.pop(true);
           }
         } else {
           throw Exception(response.error ?? 'Error al crear');
@@ -130,6 +161,7 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -165,12 +197,42 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
               const SizedBox(height: 24),
               _buildFieldLabel('ALERTA STOCK MÍNIMO'),
               const SizedBox(height: 8),
-              _buildTextField(_alertaController, '0.00', isNumeric: true),
+              TextFormField(
+                controller: _alertaController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  hintText: '0.00',
+                  filled: true,
+                  fillColor: const Color(0xFFEFEFEF),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  suffix: Text(
+                    _unidadSeleccionada.value ?? '',
+                    style: const TextStyle(color: Color(0xFF718096), fontWeight: FontWeight.w600),
+                  ),
+                ),
+                validator: (val) => (val == null || val.isEmpty) ? 'Requerido' : null,
+              ),
               
               const SizedBox(height: 24),
               _buildFieldLabel('CANTIDAD COMPRADA'),
               const SizedBox(height: 8),
-              _buildTextField(_cantidadController, '0', isNumeric: true),
+              TextFormField(
+                controller: _cantidadController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  hintText: '0',
+                  filled: true,
+                  fillColor: const Color(0xFFEFEFEF),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  suffix: Text(
+                    _unidadSeleccionada.value ?? '',
+                    style: const TextStyle(color: Color(0xFF718096), fontWeight: FontWeight.w600),
+                  ),
+                ),
+                validator: (val) => (val == null || val.isEmpty) ? 'Requerido' : null,
+              ),
 
               const SizedBox(height: 24),
               _buildFieldLabel('PRECIO DE COMPRA'),
@@ -181,17 +243,45 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
                 'Precio total pagado por el empaque/paquete completo.',
                 style: TextStyle(fontSize: 10, color: Color(0xFF718096)),
               ),
+              const SizedBox(height: 4),
+              Text(
+                'Precio unitario: \$$_precioUnitario / ${_unidadSeleccionada.value ?? ""}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF718096), fontWeight: FontWeight.w500),
+              ),
 
               const SizedBox(height: 40),
+
+              if (_showCostWarning)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFCD34D)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 20),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Al cambiar el precio o la cantidad, el costo de todas las recetas que usen este insumo se recalculará automáticamente.',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               
               ElevatedButton.icon(
-                onPressed: _isLoading ? null : _save,
+                onPressed: (_isLoading || !_isDirty) ? null : _save,
                 icon: _isLoading ? const SizedBox() : const Icon(Icons.save_outlined),
                 label: _isLoading 
                     ? const CircularProgressIndicator(color: Colors.white) 
                     : Text(_isEditing ? 'Guardar Cambios' : 'Guardar Insumo'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6B9478), // Verde de Figma corregido
+                  backgroundColor: _isDirty ? const Color(0xFF6B9478) : Colors.grey.shade400,
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(56),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

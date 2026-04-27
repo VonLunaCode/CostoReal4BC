@@ -110,6 +110,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final id = state.pathParameters['id']!;
                   return PedidoDetailScreen(pedidoId: id);
                 },
+                routes: [
+                  GoRoute(
+                    path: 'editar',
+                    builder: (context, state) {
+                      final pedido = state.extra as PedidoResponse?;
+                      return NuevoPedidoScreen(pedidoExistente: pedido);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

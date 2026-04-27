@@ -429,6 +429,29 @@ abstract class Openapi extends ChopperService {
   Future<chopper.Response<PedidoResponse>> _apiV1PedidosPedidoIdGet(
       {@Path('pedido_id') required String? pedidoId});
 
+  ///Actualizar Pedido
+  ///@param pedido_id
+  Future<chopper.Response<PedidoResponse>> apiV1PedidosPedidoIdPut({
+    required String? pedidoId,
+    required dynamic body,
+  }) {
+    generatedMapping.putIfAbsent(
+        PedidoResponse, () => PedidoResponse.fromJsonFactory);
+
+    return _apiV1PedidosPedidoIdPut(pedidoId: pedidoId, body: body);
+  }
+
+  ///Actualizar Pedido
+  ///@param pedido_id
+  @Put(
+    path: '/api/v1/pedidos/{pedido_id}',
+    optionalBody: true,
+  )
+  Future<chopper.Response<PedidoResponse>> _apiV1PedidosPedidoIdPut({
+    @Path('pedido_id') required String? pedidoId,
+    @Body() required dynamic body,
+  });
+
   ///Cancelar Pedido
   ///@param pedido_id
   Future<chopper.Response<PedidoResponse>> apiV1PedidosPedidoIdDelete(

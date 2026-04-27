@@ -15,18 +15,24 @@ class WhatsappDeepLinkButton extends StatelessWidget {
   });
 
   Future<void> _launchWhatsApp(BuildContext context) async {
-    if (whatsappUrl == null || whatsappUrl!.isEmpty) return;
+    final phone = whatsappUrl?.toString();
+    if (phone == null || phone.isEmpty) return;
     
-    final uri = Uri.parse(whatsappUrl!);
+    // Limpiar número
+    final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
+    
+    // Mensaje automático para el detalle (más formal)
+    final mensaje = '¡Hola $clienteNombre! Te escribo de Kitchy sobre tu pedido. ¿Cómo estás?';
+    final encodedMsg = Uri.encodeComponent(mensaje);
+    
+    final uri = Uri.parse('https://wa.me/52$cleanPhone?text=$encodedMsg');
     
     try {
-      // Intento 1: Forzar app nativa (externalNonBrowserApplication)
-      final launched = await launchUrl(uri, mode: LaunchMode.externalNonBrowserApplication);
-      if (!launched) {
-        // Intento 2: Fallback web/browser (externalApplication)
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
         final fallbackLaunched = await launchUrl(uri, mode: LaunchMode.externalApplication);
         if (!fallbackLaunched) {
-          throw Exception('Could not launch fallback mode.');
+          throw Exception('Could not launch WhatsApp');
         }
       }
     } catch (e) {

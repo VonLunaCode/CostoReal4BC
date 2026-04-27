@@ -331,6 +331,25 @@ Map<String, dynamic> _$PedidoResponseToJson(PedidoResponse instance) =>
       'whatsapp_url': instance.whatsappUrl,
     };
 
+PedidoUpdate _$PedidoUpdateFromJson(Map<String, dynamic> json) => PedidoUpdate(
+      clienteNombre: json['cliente_nombre'],
+      clienteWhatsapp: json['cliente_whatsapp'],
+      fechaEntrega: json['fecha_entrega'],
+      puntoEntrega: json['punto_entrega'],
+      notas: json['notas'],
+      lineas: json['lineas'],
+    );
+
+Map<String, dynamic> _$PedidoUpdateToJson(PedidoUpdate instance) =>
+    <String, dynamic>{
+      'cliente_nombre': instance.clienteNombre,
+      'cliente_whatsapp': instance.clienteWhatsapp,
+      'fecha_entrega': instance.fechaEntrega,
+      'punto_entrega': instance.puntoEntrega,
+      'notas': instance.notas,
+      'lineas': instance.lineas,
+    };
+
 RecetaCreate _$RecetaCreateFromJson(Map<String, dynamic> json) => RecetaCreate(
       nombre: json['nombre'] as String,
       porciones: (json['porciones'] as num).toInt(),

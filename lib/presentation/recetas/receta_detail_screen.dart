@@ -30,7 +30,7 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
   void _initializeState(RecetaResponse receta) {
     if (_isInitialized) return;
     
-    _margen = double.tryParse(receta.margenPct) ?? 30.0;
+    _margen = double.tryParse(receta.margenPct.toString()) ?? 30.0;
     
     for (var gasto in receta.gastosOcultos) {
       if (gasto.tipo == enums.GastoOcultoResponseTipo.empaque) {
@@ -334,6 +334,7 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
             backgroundColor: Color(0xFF16A34A)
           )
         );
+        setState(() => _isInitialized = false);
         ref.invalidate(recetaDetailProvider(widget.id));
       }
     } catch (e) {
@@ -402,53 +403,119 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
       children: [
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFEBE6D9), Color(0xFFFBF9F4)]),
-            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter, 
+              end: Alignment.bottomCenter, 
+              colors: [Color(0xFFEBE6D9), Color(0xFFFBF9F4)]
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFE2D9C5), width: 1),
           ),
           child: Column(
             children: [
-              const Text('PRECIO SUGERIDO DE VENTA', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFF807667))),
-              const SizedBox(height: 12),
-              Text(formatter.format(precioVenta), style: const TextStyle(fontSize: 48, fontFamily: 'Georgia', fontWeight: FontWeight.bold, color: Color(0xFF7A613E))),
-              const SizedBox(height: 12),
+              const Text(
+                'PRECIO SUGERIDO DE VENTA', 
+                style: TextStyle(
+                  fontSize: 10, 
+                  fontWeight: FontWeight.w800, 
+                  letterSpacing: 2.0, 
+                  color: Color(0xFF807667)
+                )
+              ),
+              const SizedBox(height: 16),
+              Text(
+                formatter.format(precioVenta), 
+                style: const TextStyle(
+                  fontSize: 54, 
+                  fontFamily: 'Georgia', 
+                  fontWeight: FontWeight.bold, 
+                  color: Color(0xFF7A613E),
+                  letterSpacing: -1,
+                )
+              ),
+              const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(color: const Color(0xFFEBE6D9), borderRadius: BorderRadius.circular(20)),
-                child: Text('Basado en margen del ${_margen.toInt()}%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF807667))),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7A613E).withOpacity(0.1), 
+                  borderRadius: BorderRadius.circular(20)
+                ),
+                child: Text(
+                  'Basado en margen del ${_margen.toInt()}%', 
+                  style: const TextStyle(
+                    fontSize: 11, 
+                    fontWeight: FontWeight.bold, 
+                    color: Color(0xFF7A613E)
+                  )
+                ),
               )
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: const Color(0xFFF5F2EA), borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white, 
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Costo por Porción', style: TextStyle(fontSize: 9, color: Color(0xFF807667))),
-                    const SizedBox(height: 4),
-                    Text(formatter.format(costoPorPorcion), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF4A4035))),
+                    const Text(
+                      'Costo por Porción', 
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF718096))
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      formatter.format(costoPorPorcion), 
+                      style: const TextStyle(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.w900, 
+                        color: Color(0xFF4A5568)
+                      )
+                    ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: const Color(0xFFF5F2EA), borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4), 
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFDCFCE7), width: 1),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Utilidad Bruta / Porción', style: TextStyle(fontSize: 9, color: Color(0xFF807667))),
-                    const SizedBox(height: 4),
-                    Text(formatter.format(bruts), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF447A55))),
+                    const Text(
+                      'Utilidad Bruta', 
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF166534))
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      formatter.format(bruts), 
+                      style: const TextStyle(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.w900, 
+                        color: Color(0xFF22C55E) // Verde Brillante
+                      )
+                    ),
                   ],
                 ),
               ),

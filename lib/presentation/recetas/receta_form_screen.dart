@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import '../../data/api_generated/openapi.models.swagger.dart';
 import '../alacena/alacena_screen.dart';
 import './recetas_providers.dart';
 import './models/receta_form_data.dart';
+import 'package:decimal/decimal.dart';
 
 class RecetaFormScreen extends ConsumerStatefulWidget {
   final RecetaResponse? recetaExistente;
@@ -25,6 +27,9 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
   final List<PasoFormData> _pasos = [PasoFormData()];
 
   bool _isSaving = false;
+  TextEditingController? _autocompleteController;
+  late final String _initialNombre;
+  late final int _initialPorciones;
 
   @override
   void initState() {
@@ -39,7 +44,8 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
         _ingredientes.add(IngredienteFormData()
           ..insumo = i.insumo
           ..cantidad = i.cantidadUsada
-          ..unidad = i.unidad);
+          ..unidad = i.unidad
+          ..unidadInput = i.unidad);
       }
       
       _pasos.clear();
@@ -50,6 +56,12 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
           ..esCritico = p.esCritico ?? false);
       }
     }
+
+    _initialNombre = widget.recetaExistente?.nombre ?? '';
+    _initialPorciones = widget.recetaExistente?.porciones ?? 1;
+    
+    _nombreController.addListener(() => setState(() {}));
+    _porcionesController.addListener(() => setState(() {}));
   }
 
   @override
@@ -63,8 +75,23 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
     if (widget.recetaExistente == null) {
       return _nombreController.text.isNotEmpty || _ingredientes.isNotEmpty;
     }
-    // Lógica simplificada de dirty state
-    return true; // Por ahora habilitado si es edición, se puede refinar comparando strings
+    
+    final currentValues = _nombreController.text + 
+                        _porcionesController.text + 
+                        _ingredientes.map((i) => "${i.cantidad}${i.unidadInput}").join() +
+                        _pasos.map((p) => p.descripcion).join();
+    
+    final initialValues = _initialNombre + 
+                         _initialPorciones.toString() + 
+                         (widget.recetaExistente?.ingredientes.map((i) => "${i.cantidadUsada}${i.unidad}").join() ?? '') +
+                         (widget.recetaExistente?.pasos.map((p) => p.descripcion).join() ?? '');
+
+    return currentValues != initialValues;
+  }
+
+  String _formatNumber(String value) {
+    final n = double.tryParse(value) ?? 0.0;
+    return n == n.toInt() ? n.toInt().toString() : n.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
   }
 
   int _getTotalTime() {
@@ -82,38 +109,88 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
       return;
     }
 
-    setState(() => _isSaving = true);
+    // VALIDACIÓN: Evitar duplicados de insumo_id
+    final insumoIds = validIngredientes.map((i) => i.insumo!.id).toSet();
+    if (insumoIds.length < validIngredientes.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No puedes añadir el mismo ingrediente dos veces. Ajusta la cantidad en uno solo.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      setState(() => _isSaving = false);
+      return;
+    }
 
     try {
       final api = ref.read(apiProvider);
+      final ingredientesData = validIngredientes.map((i) {
+        // Usar Decimal para precisión financiera
+        Decimal cantDecimal = Decimal.tryParse(i.cantidad) ?? Decimal.zero;
+        
+        if (i.unidadInput == 'g' || i.unidadInput == 'ml') {
+          cantDecimal = (cantDecimal / Decimal.fromInt(1000)).toDecimal();
+        }
+        
+        return IngredienteCreate(
+          insumoId: i.insumo!.id,
+          cantidadUsada: cantDecimal.toStringAsFixed(4),
+          unidad: (i.insumo!.unidad.value ?? '').toUpperCase(),
+        );
+      }).toList();
 
-      final recetaData = RecetaCreate(
-        nombre: _nombreController.text,
-        porciones: int.parse(_porcionesController.text),
-        margenPct: '30.0', // Valor por defecto
-        ingredientes: validIngredientes.map((i) {
-          final cantInput = double.tryParse(i.cantidad) ?? 0.0;
-          final unidadBase = i.insumo!.unidad.value ?? '';
-          return IngredienteCreate(
-            insumoId: i.insumo!.id,
-            cantidadUsada: cantInput.toString(),
-            unidad: unidadBase,
-          );
-        }).toList(),
-        pasos: _pasos.asMap().entries.map((entry) => PasoCreate(
+      final pasosData = _pasos.asMap().entries.map((entry) {
+        final duracion = (entry.value.duracionSegundos ?? 0) > 0 
+            ? entry.value.duracionSegundos 
+            : null;
+
+        return PasoCreate(
           orden: entry.key + 1,
           descripcion: entry.value.descripcion,
-          duracionSegundos: entry.value.duracionSegundos,
+          duracionSegundos: duracion,
           esCritico: entry.value.esCritico,
-        )).toList(),
-      );
+        );
+      }).toList();
 
-      final response = await api.apiV1RecetasPost(body: recetaData);
+      final response;
+      // El backend espera margen_pct como String con decimales (visto en logs previos)
+      final String margenStr = Decimal.parse('30.0').toStringAsFixed(2);
+
+      if (widget.recetaExistente != null) {
+        final body = RecetaUpdate(
+          nombre: _nombreController.text,
+          porciones: int.tryParse(_porcionesController.text) ?? 1,
+          margenPct: margenStr, 
+          ingredientes: ingredientesData,
+          pasos: pasosData,
+        );
+        debugPrint('DEBUG RECETA UPDATE (V3): ${jsonEncode(body.toJson())}');
+        response = await api.apiV1RecetasIdPut(
+          id: widget.recetaExistente!.id,
+          body: body,
+        );
+      } else {
+        final body = RecetaCreate(
+          nombre: _nombreController.text,
+          porciones: int.tryParse(_porcionesController.text) ?? 1,
+          margenPct: margenStr,
+          ingredientes: ingredientesData,
+          pasos: pasosData,
+        );
+        debugPrint('DEBUG RECETA CREATE (V3): ${jsonEncode(body.toJson())}');
+        response = await api.apiV1RecetasPost(body: body);
+      }
+
+      setState(() => _isSaving = false);
 
       if (response.isSuccessful) {
         if (mounted) {
-          context.pop();
           ref.invalidate(recetasProvider);
+          if (widget.recetaExistente != null) {
+            // Invalidar específicamente esta receta para que el detalle se refresque
+            ref.invalidate(recetaDetailProvider(widget.recetaExistente!.id));
+          }
+          context.pop();
         }
       } else {
         throw Exception(response.error ?? 'Error al guardar');
@@ -320,7 +397,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Ingredientes',
                       style: TextStyle(
                         fontFamily: 'Georgia',
@@ -329,7 +406,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         color: Color(0xFF2C2623),
                       ),
                     ),
-                    const Text(
+                    Text(
                       'PRECISIÓN GARANTIZADA',
                       style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFFA0AEC0), letterSpacing: 1),
                     ),
@@ -355,9 +432,17 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                         return insumos.where((i) => i.nombre.toLowerCase().contains(textEditingValue.text.toLowerCase()));
                       },
                       onSelected: (selection) {
-                        setState(() => _ingredientes.add(IngredienteFormData()..insumo = selection));
+                        final baseUnit = selection.unidad.value ?? 'pz';
+                        setState(() => _ingredientes.add(
+                          IngredienteFormData()
+                            ..insumo = selection
+                            ..unidad = baseUnit
+                            ..unidadInput = baseUnit,
+                        ));
+                        _autocompleteController?.clear();
                       },
                       fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                        _autocompleteController = controller;
                         return TextField(
                           controller: controller,
                           focusNode: focusNode,
@@ -455,11 +540,20 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
 
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildPasoCard(index),
-                  childCount: _pasos.length,
+              sliver: SliverReorderableList(
+                itemBuilder: (context, index) => ReorderableDragStartListener(
+                  key: ValueKey('step_$index'),
+                  index: index,
+                  child: _buildPasoCard(index),
                 ),
+                itemCount: _pasos.length,
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (newIndex > oldIndex) newIndex -= 1;
+                    final item = _pasos.removeAt(oldIndex);
+                    _pasos.insert(newIndex, item);
+                  });
+                },
               ),
             ),
 
@@ -556,20 +650,17 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                   ),
                 ),
                 SizedBox(
-                  width: 50,
+                  width: 60,
                   child: TextField(
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF2C2623)),
                     decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
-                    controller: TextEditingController(text: data.cantidad.isEmpty ? '0' : data.cantidad),
-                    onChanged: (v) => data.cantidad = v,
+                    controller: TextEditingController(text: _formatNumber(data.cantidad)),
+                    onChanged: (v) => setState(() => data.cantidad = v),
                   ),
                 ),
-                Text(
-                  data.insumo?.unidad.value ?? '',
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF8B6B3D)),
-                ),
+                _buildUnidadDropdown(data),
                 GestureDetector(
                   onTap: () {
                     final curr = double.tryParse(data.cantidad) ?? 0;
@@ -601,21 +692,51 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
     );
   }
 
-  String _getUnidadLabel(IngredienteFormData data) {
-    return data.insumo?.unidad.value ?? data.unidad;
+  Widget _buildUnidadDropdown(IngredienteFormData data) {
+    final base = data.insumo?.unidad.value ?? '';
+    final opciones = _getOpcionesUnidad(base);
+    if (opciones.length <= 1) {
+      return Text(base, style: const TextStyle(fontSize: 11, color: Color(0xFF8B6B3D)));
+    }
+    return DropdownButton<String>(
+      value: opciones.contains(data.unidadInput) ? data.unidadInput : base,
+      underline: const SizedBox(),
+      isDense: true,
+      style: const TextStyle(fontSize: 11, color: Color(0xFF8B6B3D), fontWeight: FontWeight.w600),
+      items: opciones.map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+      onChanged: (val) {
+        if (val == null || val == data.unidadInput) return;
+        setState(() {
+          final oldVal = double.tryParse(data.cantidad) ?? 0.0;
+          if (data.unidadInput == 'kg' && val == 'g') data.cantidad = (oldVal * 1000).toString();
+          if (data.unidadInput == 'g' && val == 'kg') data.cantidad = (oldVal / 1000).toString();
+          if (data.unidadInput == 'l' && val == 'ml') data.cantidad = (oldVal * 1000).toString();
+          if (data.unidadInput == 'ml' && val == 'l') data.cantidad = (oldVal / 1000).toString();
+          data.unidadInput = val;
+        });
+      },
+    );
+  }
+
+  List<String> _getOpcionesUnidad(String base) {
+    if (base == 'kg') return ['kg', 'g'];
+    if (base == 'l') return ['l', 'ml'];
+    return [base];
   }
 
   // ── CARD DE PASO ESTILO FIGMA ──
   Widget _buildPasoCard(int index) {
     final data = _pasos[index];
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F2EA),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F2EA),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -647,7 +768,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
                 Expanded(
                   child: TextFormField(
                     initialValue: data.descripcion,
-                    onChanged: (v) => data.descripcion = v,
+                    onChanged: (v) => setState(() => data.descripcion = v),
                     validator: (v) => (v == null || v.length < 5) ? 'Mínimo 5 caracteres' : null,
                     maxLines: null,
                     style: const TextStyle(fontSize: 12, color: Color(0xFF4A4A4A), height: 1.5, fontWeight: FontWeight.normal),
@@ -749,6 +870,7 @@ class _RecetaFormScreenState extends ConsumerState<RecetaFormScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../widgets/kitchy_bottom_nav.dart';
 import 'pedidos_providers.dart';
 import 'widgets/pedido_card_widget.dart';
+import '../../theme/kitchy_colors.dart';
+import '../../theme/kitchy_typography.dart';
 
 class AgendaScreen extends ConsumerWidget {
   const AgendaScreen({super.key});
@@ -14,143 +16,115 @@ class AgendaScreen extends ConsumerWidget {
     final currentFilter = ref.watch(pedidosFilterProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBF9F2),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFFBF9F2),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'KITCHY',
-          style: TextStyle(
-            fontFamily: 'Noto Serif',
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.5,
-            color: Color(0xFFC69E57), // Golden color from Figma
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: const Color(0xFFEEDCD5),
-              child: IconButton(
-                icon: const Icon(Icons.person_outline, color: Color(0xFF2C2623)),
-                onPressed: () {
-                  context.push('/perfil');
-                },
+      backgroundColor: KitchyColors.background,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- HEADER ---
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('KITCHY', style: KitchyTypography.logo),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: KitchyColors.border, width: 1.5),
+                        ),
+                        child: const Icon(Icons.notifications_outlined,
+                            size: 20, color: KitchyColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text('Agenda', style: KitchyTypography.heading1),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Gestión de pedidos artesanales para hoy',
+                    style: KitchyTypography.body,
+                  ),
+                  const SizedBox(height: 14),
+                ],
               ),
             ),
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Texts
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Agenda',
-                  style: TextStyle(
-                    fontFamily: 'Noto Serif',
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C2623),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Gestión de pedidos artesanales para hoy.',
-                  style: TextStyle(
-                    fontFamily: 'Work Sans',
-                    fontSize: 14,
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
 
-          // Filter Chips Row
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                _buildFilterChip(context, ref, 'Todos', null, currentFilter),
-                const SizedBox(width: 8),
-                _buildFilterChip(context, ref, 'Pendiente', 'pendiente', currentFilter),
-                const SizedBox(width: 8),
-                _buildFilterChip(context, ref, 'En Preparación', 'en_preparacion', currentFilter),
-                const SizedBox(width: 8),
-                _buildFilterChip(context, ref, 'Listo', 'listo', currentFilter),
-                const SizedBox(width: 8),
-                _buildFilterChip(context, ref, 'Entregado', 'entregado', currentFilter),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // List or Empty State
-          Expanded(
-            child: pedidosAsync.when(
-              data: (pedidos) {
-                if (pedidos.isEmpty) {
-                  return _buildEmptyState(context);
-                }
-                
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(pedidosProvider);
-                  },
-                  color: const Color(0xFFC69E57),
-                  child: ListView.builder(
-                    itemCount: pedidos.length,
-                    padding: const EdgeInsets.only(bottom: 80),
-                    itemBuilder: (context, index) {
-                      final pedido = pedidos[index];
-                      return PedidoCardWidget(
-                        pedido: pedido,
-                        onTap: () {
-                          context.go('/agenda/${pedido.id}');
-                        },
-                      );
-                    },
-                  ),
-                );
-              },
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: Color(0xFFC69E57)),
+            // --- FILTER BAR ---
+            SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _buildFilterButton(context, ref, 'Todos', null, currentFilter),
+                  _buildFilterButton(context, ref, 'Pendiente', 'pendiente', currentFilter),
+                  _buildFilterButton(context, ref, 'En Preparación', 'en_preparacion', currentFilter),
+                  _buildFilterButton(context, ref, 'Listo', 'listo', currentFilter),
+                  _buildFilterButton(context, ref, 'Entregado', 'entregado', currentFilter),
+                  _buildFilterButton(context, ref, 'Cancelado', 'cancelado', currentFilter),
+                ],
               ),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, color: Color(0xFFBA1A1A), size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error al cargar pedidos',
-                      style: TextStyle(color: Colors.grey.shade700),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // --- LIST ---
+            Expanded(
+              child: pedidosAsync.when(
+                data: (pedidos) {
+                  if (pedidos.isEmpty) {
+                    return _buildEmptyState(context);
+                  }
+                  
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(pedidosProvider);
+                    },
+                    color: KitchyColors.primary,
+                    child: ListView.builder(
+                      itemCount: pedidos.length,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      itemBuilder: (context, index) {
+                        final pedido = pedidos[index];
+                        return PedidoCardWidget(
+                          pedido: pedido,
+                          onTap: () {
+                            context.go('/agenda/${pedido.id}');
+                          },
+                        );
+                      },
                     ),
-                    TextButton(
-                      onPressed: () => ref.invalidate(pedidosProvider),
-                      child: const Text('Reintentar', style: TextStyle(color: Color(0xFFC69E57))),
-                    ),
-                  ],
+                  );
+                },
+                loading: () => const Center(
+                  child: CircularProgressIndicator(color: KitchyColors.primary),
+                ),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, color: Color(0xFFBA1A1A), size: 48),
+                      const SizedBox(height: 16),
+                      Text('Error al cargar pedidos', style: KitchyTypography.body),
+                      TextButton(
+                        onPressed: () => ref.invalidate(pedidosProvider),
+                        child: Text('Reintentar', style: TextStyle(color: KitchyColors.primary)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFC69E57), // Figma golden color
+        backgroundColor: KitchyColors.primary,
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
         onPressed: () {
@@ -163,7 +137,7 @@ class AgendaScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterChip(
+  Widget _buildFilterButton(
     BuildContext context, 
     WidgetRef ref, 
     String label, 
@@ -171,26 +145,28 @@ class AgendaScreen extends ConsumerWidget {
     String? currentFilter
   ) {
     final isSelected = currentFilter == filterValue;
-    return FilterChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          fontFamily: 'Work Sans',
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          color: isSelected ? Colors.white : const Color(0xFF6D605A),
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => ref.read(pedidosFilterProvider.notifier).state = filterValue,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? KitchyColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? KitchyColors.primary : KitchyColors.border,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: isSelected ? KitchyTypography.chipActive : KitchyTypography.chipInactive,
+            ),
+          ),
         ),
       ),
-      selected: isSelected,
-      onSelected: (selected) {
-        ref.read(pedidosFilterProvider.notifier).state = filterValue;
-      },
-      backgroundColor: const Color(0xFFEEDCD5).withOpacity(0.4), // Light surface variant
-      selectedColor: const Color(0xFFC69E57), // Golden
-      checkmarkColor: Colors.transparent, // Hide checkmark like Figma
-      showCheckmark: false,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      side: BorderSide.none,
     );
   }
 

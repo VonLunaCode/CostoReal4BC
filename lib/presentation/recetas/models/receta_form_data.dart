@@ -4,8 +4,9 @@ class IngredienteFormData {
   InsumoResponse? insumo;
   String cantidad = '0';
   String unidad = 'pz';
+  String unidadInput = 'pz'; // Sub-unidad seleccionada por el usuario en UI
 
-  IngredienteFormData({this.insumo, this.cantidad = '0', this.unidad = 'pz'});
+  IngredienteFormData({this.insumo, this.cantidad = '0', this.unidad = 'pz', this.unidadInput = 'pz'});
 }
 
 class PasoFormData {

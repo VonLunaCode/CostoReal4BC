@@ -12,6 +12,7 @@ import '../widgets/kitchy_bottom_nav.dart';
 import 'pedidos_providers.dart';
 import 'widgets/whatsapp_deep_link_button.dart';
 import 'widgets/cambiar_estado_pedido_bottom_sheet.dart';
+import '../../utils/date_formatter.dart';
 
 class PedidoDetailScreen extends ConsumerWidget {
   final String pedidoId;
@@ -40,22 +41,39 @@ class PedidoDetailScreen extends ConsumerWidget {
         ),
         title: Text('KITCHY', style: KitchyTypography.logo),
         centerTitle: true,
-        actions: const [
-          CircleAvatar(
+        actions: [
+          pedidoAsync.when(
+            data: (pedido) => IconButton(
+              icon: const Icon(Icons.edit_outlined, color: KitchyColors.textPrimary),
+              onPressed: () async {
+                final updated = await context.push<bool>(
+                  '/agenda/${pedido.id}/editar',
+                  extra: pedido,
+                );
+                if (updated == true) {
+                  ref.invalidate(pedidoDetailProvider(pedidoId));
+                  ref.invalidate(pedidosProvider);
+                }
+              },
+            ),
+            loading: () => const SizedBox(),
+            error: (_, __) => const SizedBox(),
+          ),
+          const CircleAvatar(
             radius: 18,
             backgroundColor: KitchyColors.border,
             child: Icon(Icons.person, color: KitchyColors.textSecondary, size: 18),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
         ],
       ),
       body: pedidoAsync.when(
         data: (pedido) {
           final isDelivery = true; // Por ahora asumimos que todos son domicilio si no hay tipo_entrega
-          final formattedDate = DateFormat("d MMM, HH:mm").format(pedido.fechaEntrega.toLocal());
+          final formattedDate = KitchyDateFormatter.formatDeliveryDate(pedido.fechaEntrega);
           final subtotal = pedido.lineas.fold(0.0, (sum, linea) {
-            final double precio = double.tryParse(linea.precioAcordadoMxn.toString()) ?? 0.0;
-            return sum + (precio * linea.cantidadPorciones);
+            final double precioLinea = double.tryParse(linea.precioAcordadoMxn.toString()) ?? 0.0;
+            return sum + precioLinea;
           });
           final envio = 0.0; // Placeholder si no viene de la API
           final total = subtotal + envio;
@@ -83,7 +101,7 @@ class PedidoDetailScreen extends ConsumerWidget {
                             size: 13, color: KitchyColors.textSecondary),
                         const SizedBox(width: 5),
                         Text(
-                          '$formattedDate — ${_formatDeliveryType(null)}',
+                          '$formattedDate — ${pedido.puntoEntrega != null && pedido.puntoEntrega!.isNotEmpty ? 'Entrega a Domicilio' : 'Retiro en Local'}',
                           style: KitchyTypography.deliveryMeta,
                         ),
                       ],
@@ -189,17 +207,22 @@ class PedidoDetailScreen extends ConsumerWidget {
                       const Divider(color: KitchyColors.divider, height: 1),
                       
                       // Llenar con lineas
-                      ...pedido.lineas.map((linea) => Column(
-                        children: [
-                          _orderItem(
-                            name: linea.nombreProducto,
-                            qty: linea.cantidadPorciones,
-                            variant: 'Sin variante',
-                            price: '\$${(double.tryParse(linea.precioAcordadoMxn.toString()) ?? 0.0).toStringAsFixed(2)}',
-                          ),
-                          const Divider(color: KitchyColors.divider, height: 1, indent: 16, endIndent: 16),
-                        ],
-                      )),
+                      ...pedido.lineas.map((linea) {
+                        final totalLinea = double.tryParse(linea.precioAcordadoMxn.toString()) ?? 0.0;
+                        final precioUnitario = linea.cantidadPorciones > 0 ? totalLinea / linea.cantidadPorciones : 0.0;
+                        
+                        return Column(
+                          children: [
+                            _orderItem(
+                              name: linea.nombreProducto,
+                              qty: linea.cantidadPorciones,
+                              variant: 'Precio unitario: \$${precioUnitario.toStringAsFixed(2)}',
+                              price: '\$${totalLinea.toStringAsFixed(2)}',
+                            ),
+                            const Divider(color: KitchyColors.divider, height: 1, indent: 16, endIndent: 16),
+                          ],
+                        );
+                      }),
                       
                       const Divider(color: KitchyColors.divider, height: 1),
                       
@@ -262,8 +285,7 @@ class PedidoDetailScreen extends ConsumerWidget {
       case 'pendiente': currentStep = 0; break;
       case 'en_preparacion': currentStep = 1; break;
       case 'listo': currentStep = 2; break;
-      case 'en_camino': currentStep = 3; break;
-      case 'entregado': currentStep = 4; break;
+      case 'entregado': currentStep = 3; break;
       default: currentStep = 0;
     }
 
@@ -271,7 +293,7 @@ class PedidoDetailScreen extends ConsumerWidget {
       {'label': 'Pendiente',   'icon': Icons.access_time_outlined},
       {'label': 'Preparando',  'icon': Icons.storefront_outlined},
       {'label': 'Listo',       'icon': Icons.check_box_outlined},
-      {'label': 'En camino',   'icon': Icons.directions_bike_outlined},
+      {'label': 'Entregado',   'icon': Icons.task_alt_outlined},
     ];
 
     return Container(

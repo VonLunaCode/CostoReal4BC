@@ -5,18 +5,17 @@ import 'kitchy_colors.dart';
 class KitchyTypography {
   // Logo / Brand
   static TextStyle logo = GoogleFonts.playfairDisplay(
-    fontSize: 22,
-    fontWeight: FontWeight.w600,
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
     color: KitchyColors.primary,
-    letterSpacing: 2.0,
+    letterSpacing: 3.0,
   );
 
   // Títulos de pantalla
   static TextStyle heading1 = GoogleFonts.playfairDisplay(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
+    fontSize: 30,
+    fontWeight: FontWeight.bold,
     color: KitchyColors.textPrimary,
-    height: 1.2,
   );
 
   // Subtítulo de sección (labels en mayúsculas)
@@ -24,15 +23,14 @@ class KitchyTypography {
     fontSize: 11,
     fontWeight: FontWeight.w600,
     color: KitchyColors.textSecondary,
-    letterSpacing: 1.4,
+    letterSpacing: 1.0,
   );
 
   // Body normal
   static TextStyle body = GoogleFonts.dmSans(
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: FontWeight.w400,
-    color: KitchyColors.textPrimary,
-    height: 1.5,
+    color: KitchyColors.textSecondary,
   );
 
   // Body bold (nombres de productos, cliente)
@@ -44,24 +42,22 @@ class KitchyTypography {
 
   // Precio
   static TextStyle price = GoogleFonts.dmSans(
-    fontSize: 13,
-    fontWeight: FontWeight.w500,
+    fontSize: 10,
     color: KitchyColors.textSecondary,
   );
 
   // Precio total
   static TextStyle priceTotal = GoogleFonts.dmSans(
     fontSize: 15,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.bold,
     color: KitchyColors.textPrimary,
   );
 
   // Botón principal
   static TextStyle button = GoogleFonts.dmSans(
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: FontWeight.w600,
     color: Colors.white,
-    letterSpacing: 0.3,
   );
 
   // Botón secundario / outlined
@@ -73,13 +69,13 @@ class KitchyTypography {
 
   // Chip / tiempo seleccionado
   static TextStyle chipActive = GoogleFonts.dmSans(
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: FontWeight.w600,
     color: Colors.white,
   );
 
   static TextStyle chipInactive = GoogleFonts.dmSans(
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: FontWeight.w400,
     color: KitchyColors.textSecondary,
   );
@@ -91,37 +87,33 @@ class KitchyTypography {
     color: KitchyColors.textPrimary,
   );
 
-  // Nombre del cliente (heading grande, multi-línea)
-  static TextStyle clientHeading = GoogleFonts.playfairDisplay(
-    fontSize: 30,
+  // Nombre del cliente (heading en tarjeta)
+  static TextStyle clientHeading = GoogleFonts.dmSans(
+    fontSize: 16,
     fontWeight: FontWeight.w700,
     color: KitchyColors.textPrimary,
-    height: 1.15,
   );
 
   // Subtítulo de fecha/hora/tipo de entrega
   static TextStyle deliveryMeta = GoogleFonts.dmSans(
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
+    fontSize: 12,
     color: KitchyColors.textSecondary,
   );
 
   // Nombre del producto en resumen
   static TextStyle productName = GoogleFonts.dmSans(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: KitchyColors.textPrimary,
+    fontSize: 13,
+    color: Color(0xFF5C4A2A),
   );
 
-  // Variante del producto (ej: "Extra mantequilla")
+  // Variante del producto
   static TextStyle productVariant = GoogleFonts.dmSans(
     fontSize: 12,
-    fontWeight: FontWeight.w400,
     color: KitchyColors.textSecondary,
-    height: 1.4,
+    fontStyle: FontStyle.italic,
   );
 
-  // Precio del producto (alineado a la derecha)
+  // Precio del producto
   static TextStyle productPrice = GoogleFonts.dmSans(
     fontSize: 14,
     fontWeight: FontWeight.w600,
@@ -131,29 +123,27 @@ class KitchyTypography {
   // Fila subtotal / envío
   static TextStyle summaryRow = GoogleFonts.dmSans(
     fontSize: 13,
-    fontWeight: FontWeight.w400,
     color: KitchyColors.textSecondary,
   );
 
-  // Fila Total (bold + dorado)
+  // Fila Total
   static TextStyle totalRow = GoogleFonts.dmSans(
     fontSize: 15,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.bold,
     color: KitchyColors.textPrimary,
   );
 
   static TextStyle totalAmount = GoogleFonts.dmSans(
     fontSize: 15,
-    fontWeight: FontWeight.w700,
-    color: KitchyColors.primary,
+    fontWeight: FontWeight.bold,
+    color: KitchyColors.textPrimary,
   );
 
   // Texto de dirección / notas
   static TextStyle infoBody = GoogleFonts.dmSans(
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
-    color: KitchyColors.textPrimary,
-    height: 1.5,
+    fontSize: 12,
+    color: KitchyColors.textSecondary,
+    fontStyle: FontStyle.italic,
   );
 
   // Label de paso del stepper

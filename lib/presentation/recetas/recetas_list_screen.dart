@@ -222,7 +222,8 @@ class RecetaCardWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final double? costo = double.tryParse(receta.costoCalculado ?? '');
+    final double costoTotal = double.tryParse(receta.costoCalculado?.toString() ?? '0') ?? 0.0;
+    final double costoPorPorcion = receta.porciones > 0 ? costoTotal / receta.porciones : 0.0;
 
     return Dismissible(
       key: ValueKey(receta.id),
@@ -345,10 +346,16 @@ class RecetaCardWidget extends ConsumerWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text('COSTO/PORCIÓN', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFA0AEC0))),
+                            const Text('PRECIO SUGERIDO', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFBC985D))),
                             Text(
-                              costo != null ? '\$${(costo / receta.porciones).toStringAsFixed(2)}' : '—',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: costo != null ? const Color(0xFF16A34A) : const Color(0xFFA0AEC0)),
+                              costoPorPorcion > 0
+                                  ? '\$${(costoPorPorcion * (1 + (double.tryParse(receta.margenPct.toString()) ?? 0.0) / 100)).toStringAsFixed(2)}'
+                                  : '—',
+                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF2D3748)),
+                            ),
+                            Text(
+                              'Costo: \$${costoPorPorcion.toStringAsFixed(2)}',
+                              style: const TextStyle(fontSize: 10, color: Color(0xFFA0AEC0)),
                             ),
                           ],
                         ),

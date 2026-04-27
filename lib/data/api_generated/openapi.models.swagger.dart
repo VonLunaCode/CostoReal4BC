@@ -1643,6 +1643,112 @@ extension $PedidoResponseExtension on PedidoResponse {
 }
 
 @JsonSerializable(explicitToJson: true)
+class PedidoUpdate {
+  const PedidoUpdate({
+    this.clienteNombre,
+    this.clienteWhatsapp,
+    this.fechaEntrega,
+    this.puntoEntrega,
+    this.notas,
+    this.lineas,
+  });
+
+  factory PedidoUpdate.fromJson(Map<String, dynamic> json) =>
+      _$PedidoUpdateFromJson(json);
+
+  static const toJsonFactory = _$PedidoUpdateToJson;
+  Map<String, dynamic> toJson() => _$PedidoUpdateToJson(this);
+
+  @JsonKey(name: 'cliente_nombre')
+  final dynamic clienteNombre;
+  @JsonKey(name: 'cliente_whatsapp')
+  final dynamic clienteWhatsapp;
+  @JsonKey(name: 'fecha_entrega')
+  final dynamic fechaEntrega;
+  @JsonKey(name: 'punto_entrega')
+  final dynamic puntoEntrega;
+  @JsonKey(name: 'notas')
+  final dynamic notas;
+  @JsonKey(name: 'lineas')
+  final dynamic lineas;
+  static const fromJsonFactory = _$PedidoUpdateFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PedidoUpdate &&
+            (identical(other.clienteNombre, clienteNombre) ||
+                const DeepCollectionEquality()
+                    .equals(other.clienteNombre, clienteNombre)) &&
+            (identical(other.clienteWhatsapp, clienteWhatsapp) ||
+                const DeepCollectionEquality()
+                    .equals(other.clienteWhatsapp, clienteWhatsapp)) &&
+            (identical(other.fechaEntrega, fechaEntrega) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaEntrega, fechaEntrega)) &&
+            (identical(other.puntoEntrega, puntoEntrega) ||
+                const DeepCollectionEquality()
+                    .equals(other.puntoEntrega, puntoEntrega)) &&
+            (identical(other.notas, notas) ||
+                const DeepCollectionEquality().equals(other.notas, notas)) &&
+            (identical(other.lineas, lineas) ||
+                const DeepCollectionEquality().equals(other.lineas, lineas)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(clienteNombre) ^
+      const DeepCollectionEquality().hash(clienteWhatsapp) ^
+      const DeepCollectionEquality().hash(fechaEntrega) ^
+      const DeepCollectionEquality().hash(puntoEntrega) ^
+      const DeepCollectionEquality().hash(notas) ^
+      const DeepCollectionEquality().hash(lineas) ^
+      runtimeType.hashCode;
+}
+
+extension $PedidoUpdateExtension on PedidoUpdate {
+  PedidoUpdate copyWith(
+      {dynamic clienteNombre,
+      dynamic clienteWhatsapp,
+      dynamic fechaEntrega,
+      dynamic puntoEntrega,
+      dynamic notas,
+      dynamic lineas}) {
+    return PedidoUpdate(
+        clienteNombre: clienteNombre ?? this.clienteNombre,
+        clienteWhatsapp: clienteWhatsapp ?? this.clienteWhatsapp,
+        fechaEntrega: fechaEntrega ?? this.fechaEntrega,
+        puntoEntrega: puntoEntrega ?? this.puntoEntrega,
+        notas: notas ?? this.notas,
+        lineas: lineas ?? this.lineas);
+  }
+
+  PedidoUpdate copyWithWrapped(
+      {Wrapped<dynamic>? clienteNombre,
+      Wrapped<dynamic>? clienteWhatsapp,
+      Wrapped<dynamic>? fechaEntrega,
+      Wrapped<dynamic>? puntoEntrega,
+      Wrapped<dynamic>? notas,
+      Wrapped<dynamic>? lineas}) {
+    return PedidoUpdate(
+        clienteNombre:
+            (clienteNombre != null ? clienteNombre.value : this.clienteNombre),
+        clienteWhatsapp: (clienteWhatsapp != null
+            ? clienteWhatsapp.value
+            : this.clienteWhatsapp),
+        fechaEntrega:
+            (fechaEntrega != null ? fechaEntrega.value : this.fechaEntrega),
+        puntoEntrega:
+            (puntoEntrega != null ? puntoEntrega.value : this.puntoEntrega),
+        notas: (notas != null ? notas.value : this.notas),
+        lineas: (lineas != null ? lineas.value : this.lineas));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
 class RecetaCreate {
   const RecetaCreate({
     required this.nombre,

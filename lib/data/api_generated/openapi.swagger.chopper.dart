@@ -315,6 +315,22 @@ final class _$Openapi extends Openapi {
   }
 
   @override
+  Future<Response<PedidoResponse>> _apiV1PedidosPedidoIdPut({
+    required String? pedidoId,
+    required dynamic body,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/pedidos/${pedidoId}');
+    final $body = body;
+    final Request $request = Request(
+      'PUT',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<PedidoResponse, PedidoResponse>($request);
+  }
+
+  @override
   Future<Response<PedidoResponse>> _apiV1PedidosPedidoIdDelete(
       {required String? pedidoId}) {
     final Uri $url = Uri.parse('/api/v1/pedidos/${pedidoId}');

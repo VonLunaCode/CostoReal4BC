@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../data/api_generated/openapi.models.swagger.dart';
+import '../../../utils/date_formatter.dart';
+import '../../../theme/kitchy_colors.dart';
+import '../../../theme/kitchy_typography.dart';
+import '../../../data/api_provider.dart';
+import '../pedidos_providers.dart';
 
-class PedidoCardWidget extends StatelessWidget {
+class PedidoCardWidget extends ConsumerWidget {
   final PedidoResponse pedido;
   final VoidCallback onTap;
 
@@ -13,193 +19,314 @@ class PedidoCardWidget extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _getEstadoColor(String estado) {
-    switch (estado.toLowerCase()) {
-      case 'pendiente':
-        return const Color(0xFF6B7280); // Gray
-      case 'en_preparacion':
-      case 'en preparación':
-        return const Color(0xFFD97706); // Amber
-      case 'listo':
-        return const Color(0xFF16A34A); // Green
-      case 'entregado':
-        return const Color(0xFF2563EB); // Blue
-      case 'cancelado':
-        return const Color(0xFFDC2626); // Red
-      default:
-        return const Color(0xFF6B7280);
+  Future<void> _changeStatus(BuildContext context, WidgetRef ref, String nextStatus, String actionLabel) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('¿Confirmar $actionLabel?'),
+        content: Text('¿Estás seguro de que deseas cambiar el estado a "$nextStatus"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: KitchyColors.primary),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final api = ref.read(apiProvider);
+      final response = await api.apiV1PedidosPedidoIdEstadoPatch(
+        pedidoId: pedido.id,
+        nuevoEstado: nextStatus,
+      );
+
+      if (response.isSuccessful) {
+        ref.invalidate(pedidosProvider);
+        // También invalidar el detalle por si acaso
+        ref.invalidate(pedidoDetailProvider(pedido.id));
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al cambiar estado: ${response.error}')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error inesperado')),
+        );
+      }
     }
   }
 
-  String _formatDate(DateTime date) {
-    final formatter = DateFormat('dd/MM HH:mm');
-    return 'Entrega: ${formatter.format(date)}';
-  }
-
-  Future<void> _launchWhatsApp(String? phone) async {
+  Future<void> _launchWhatsApp(BuildContext context) async {
+    final phone = pedido.clienteWhatsapp?.toString();
     if (phone == null || phone.isEmpty) return;
     
-    // Clean phone number
-    final cleanPhone = phone.replaceAll(RegExp(r'\\D'), '');
-    final url = Uri.parse('https://wa.me/\$cleanPhone');
+    // Limpiar número: quedarse solo con dígitos
+    final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
     
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+    // Crear mensaje automático
+    final productos = pedido.lineas.map((l) => '${l.cantidadPorciones}x ${l.nombreProducto}').join(', ');
+    final mensaje = '¡Hola ${pedido.clienteNombre}! Te escribo de Kitchy sobre tu pedido de ($productos). ¿Todo bien para la entrega hoy?';
+    final encodedMsg = Uri.encodeComponent(mensaje);
+    
+    // La URL correcta de wa.me no lleva el + ni caracteres especiales
+    final url = Uri.parse('https://wa.me/52$cleanPhone?text=$encodedMsg');
+    
+    try {
+      final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir WhatsApp')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al intentar abrir WhatsApp')),
+        );
+      }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final statusColor = _getEstadoColor(pedido.estado);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final estado = pedido.estado.toLowerCase();
+    final cfg = _getStatusConfig(estado);
     
-    // Subtítulo de productos "2x Sourdough, 1x Croissant..."
-    final productosTexto = pedido.lineas.map((l) {
-      return '${l.cantidadPorciones}x ${l.nombreProducto}';
-    }).join(', ');
+    final productosTexto = pedido.lineas.map((l) => '${l.cantidadPorciones}x ${l.nombreProducto}').toList();
+    final subtotal = pedido.lineas.fold(0.0, (sum, linea) {
+      final double precioLinea = double.tryParse(linea.precioAcordadoMxn.toString()) ?? 0.0;
+      return sum + precioLinea;
+    });
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFBF9F2), // Surface Bright
-        borderRadius: BorderRadius.circular(12.0),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2C2623).withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: const Color(0xFF2C1F0E).withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12.0),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Barra Izquierda de 4dp
-              Container(
-                width: 4.0,
-                color: statusColor,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status badge + total
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _StatusBadge(label: cfg.label, bg: cfg.bg, fg: cfg.fg),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Total', style: KitchyTypography.price),
+                    Text(
+                      '\$${subtotal.toStringAsFixed(2)}',
+                      style: KitchyTypography.priceTotal,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Client name + time
+            Text(pedido.clienteNombre, style: KitchyTypography.clientHeading),
+            const SizedBox(height: 2),
+            Text(
+              KitchyDateFormatter.formatDeliveryDate(pedido.fechaEntrega),
+              style: KitchyTypography.deliveryMeta,
+            ),
+            const SizedBox(height: 10),
+
+            // Items list
+            ...productosTexto.map(
+              (text) => Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(text, style: KitchyTypography.productName),
               ),
-              
-              // Contenido Principal
-              Expanded(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: onTap,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header: Cliente & Badge
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  pedido.clienteNombre,
-                                  style: const TextStyle(
-                                    fontFamily: 'Noto Serif',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2C2623),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              // Badge de Estado
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  pedido.estado.toUpperCase().replaceAll('_', ' '),
-                                  style: TextStyle(
-                                    fontFamily: 'Work Sans',
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
-                                    color: statusColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          
-                          // Subtítulo de Productos
-                          Text(
-                            productosTexto.isEmpty ? 'Sin productos' : productosTexto,
-                            style: const TextStyle(
-                              fontFamily: 'Work Sans',
-                              fontSize: 13,
-                              color: Color(0xFF6D605A),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          
-                          const SizedBox(height: 12),
-                          
-                          // Bottom Row: Fecha/Hora y WhatsApp
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.schedule_rounded,
-                                    size: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    _formatDate(pedido.fechaEntrega),
-                                    style: TextStyle(
-                                      fontFamily: 'Work Sans',
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              
-                              // Botón de WhatsApp Condicional
-                              if (pedido.clienteWhatsapp != null && pedido.clienteWhatsapp.toString().isNotEmpty)
-                                GestureDetector(
-                                  onTap: () => _launchWhatsApp(pedido.clienteWhatsapp.toString()),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF25D366).withOpacity(0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.chat, // Fallback icon for WhatsApp
-                                      size: 16,
-                                      color: Color(0xFF25D366),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
+            ),
+
+            if (pedido.notas != null && pedido.notas!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 13, color: Color(0xFF8B7355)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      pedido.notas!,
+                      style: KitchyTypography.infoBody,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 12),
+
+            // Action row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Action: WhatsApp
+                GestureDetector(
+                  onTap: () => _launchWhatsApp(context),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: KitchyColors.border),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.chat_bubble_outline,
+                        size: 16, color: KitchyColors.textSecondary),
+                  ),
+                ),
+
+                // Action button (Tap card for details/change status)
+                if (cfg.actionLabel != null && cfg.nextStatus != null)
+                  GestureDetector(
+                    onTap: () => _changeStatus(context, ref, cfg.nextStatus!, cfg.actionLabel!),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: cfg.actionColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        cfg.actionLabel!,
+                        style: KitchyTypography.button,
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
+
+  _StatusConfig _getStatusConfig(String estado) {
+    switch (estado) {
+      case 'pendiente':
+        return _StatusConfig(
+          label: 'Pendiente',
+          bg: const Color(0xFFFFF3E0),
+          fg: const Color(0xFFE65100),
+          actionLabel: 'Preparar',
+          actionColor: KitchyColors.primary,
+          nextStatus: 'en_preparacion',
+        );
+      case 'en_preparacion':
+        return _StatusConfig(
+          label: 'En Preparación',
+          bg: const Color(0xFFFFF8E1),
+          fg: const Color(0xFFF57F17),
+          actionLabel: 'Terminar',
+          actionColor: KitchyColors.textPrimary,
+          nextStatus: 'listo',
+        );
+      case 'listo':
+        return _StatusConfig(
+          label: 'Listo',
+          bg: const Color(0xFFE8F5E9),
+          fg: const Color(0xFF2E7D32),
+          actionLabel: 'Entregar',
+          actionColor: const Color(0xFF2E7D32),
+          nextStatus: 'entregado',
+        );
+      case 'entregado':
+        return _StatusConfig(
+          label: 'Entregado',
+          bg: const Color(0xFFF3F3F3),
+          fg: const Color(0xFF757575),
+          actionLabel: null,
+          actionColor: Colors.transparent,
+          nextStatus: null,
+        );
+      case 'cancelado':
+        return _StatusConfig(
+          label: 'Cancelado',
+          bg: const Color(0xFFFFEBEE),
+          fg: const Color(0xFFC62828),
+          actionLabel: null,
+          actionColor: Colors.transparent,
+          nextStatus: null,
+        );
+      default:
+        return _StatusConfig(
+          label: estado.toUpperCase(),
+          bg: const Color(0xFFF3F3F3),
+          fg: const Color(0xFF757575),
+          actionLabel: null,
+          actionColor: Colors.transparent,
+          nextStatus: null,
+        );
+    }
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String label;
+  final Color bg;
+  final Color fg;
+
+  const _StatusBadge({required this.label, required this.bg, required this.fg});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusConfig {
+  final String label;
+  final Color bg;
+  final Color fg;
+  final String? actionLabel;
+  final Color actionColor;
+  final String? nextStatus;
+
+  const _StatusConfig({
+    required this.label,
+    required this.bg,
+    required this.fg,
+    required this.actionLabel,
+    required this.actionColor,
+    required this.nextStatus,
+  });
 }

@@ -191,93 +191,118 @@ class InsumoDetailScreen extends ConsumerWidget {
                 
                 const SizedBox(height: 32),
                 
-                // Estado de Alacena (Barra horizontal de Figma)
+                // Estado de Alacena (Barra dinámica real)
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F2EA),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Estado de Alacena',
-                            style: TextStyle(
-                              fontFamily: 'Georgia',
-                              fontStyle: FontStyle.italic,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF2C2623),
-                            ),
-                          ),
-                          Text(
-                            'Meta: ${alertaMin * 4}${insumo.unidad.value}', // Simulated meta based on alert
-                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF807667)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Stack(
-                        alignment: Alignment.centerLeft,
-                        children: [
-                          Container(
-                            height: 12,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          FractionallySizedBox(
-                            widthFactor: (cantActual / (alertaMin * 4)).clamp(0.0, 1.0),
-                            child: Container(
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: isCritico ? const Color(0xFFDC2626) : const Color(0xFF8B6B3D),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          ),
-                          // Red Alert Line
-                          Positioned(
-                            left: ((alertaMin / (alertaMin * 4)).clamp(0.0, 1.0) * (MediaQuery.of(context).size.width - 96)),
-                            child: Container(
-                              width: 2,
-                              height: 14,
-                              color: const Color(0xFFDC2626),
-                            ),
-                          ),
-                        ],
-                      ),
-                       const SizedBox(height: 16),
-                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Definimos la Meta. Si es muy baja, usamos el mínimo * 2 como referencia visual.
+                      final double meta = double.parse(insumo.cantidadComprada.toString()) > alertaMin 
+                          ? double.parse(insumo.cantidadComprada.toString()) 
+                          : (alertaMin > 0 ? alertaMin * 2 : 10.0);
+                          
+                      final double progress = (cantActual / meta).clamp(0.0, 1.0);
+                      final double alertPosition = (alertaMin / meta).clamp(0.0, 1.0);
+                      final double barWidth = constraints.maxWidth;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(color: Color(0xFFDC2626), shape: BoxShape.circle),
+                              const Text(
+                                'Estado de Alacena',
+                                style: TextStyle(
+                                  fontFamily: 'Georgia',
+                                  fontStyle: FontStyle.italic,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2C2623),
+                                ),
                               ),
-                              const SizedBox(width: 6),
                               Text(
-                                'ALERTA MÍNIMO: ${alertaMin.toStringAsFixed(0)}KG',
-                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF807667), letterSpacing: 0.5),
+                                'Meta: ${meta.toStringAsFixed(meta == meta.toInt() ? 0 : 1)} ${insumo.unidad.value ?? ""}',
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF807667)),
                               ),
                             ],
                           ),
-                          Text(
-                            isCritico ? 'Nivel Crítico' : 'Nivel Saludable',
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isCritico ? const Color(0xFFDC2626) : const Color(0xFF8B6B3D)),
+                          const SizedBox(height: 16),
+                          Stack(
+                            alignment: Alignment.centerLeft,
+                            clipBehavior: Clip.none,
+                            children: [
+                              // Fondo de la barra
+                              Container(
+                                height: 12,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              // Progreso actual
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 500),
+                                height: 12,
+                                width: barWidth * progress,
+                                decoration: BoxDecoration(
+                                  color: isCritico ? const Color(0xFFDC2626) : const Color(0xFF8B6B3D),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              // Línea Roja de Alerta (Posición dinámica)
+                              Positioned(
+                                left: barWidth * alertPosition,
+                                child: Container(
+                                  width: 2,
+                                  height: 18,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDC2626),
+                                    borderRadius: BorderRadius.circular(1),
+                                    boxShadow: [
+                                      BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 2, offset: const Offset(1, 1))
+                                    ]
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(color: Color(0xFFDC2626), shape: BoxShape.circle),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'ALERTA MÍNIMO: ${alertaMin.toStringAsFixed(alertaMin == alertaMin.toInt() ? 0 : 1)} ${insumo.unidad.value ?? ""}',
+                                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF807667), letterSpacing: 0.5),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                isCritico ? 'Nivel Crítico' : 'Nivel Saludable',
+                                style: TextStyle(
+                                  fontSize: 10, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: isCritico ? const Color(0xFFDC2626) : const Color(0xFF16A34A) // Verde para saludable
+                                ),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
 
@@ -356,10 +381,10 @@ class InsumoDetailScreen extends ConsumerWidget {
                         final dateStr = _formatDate(m.fecha);
                         final prefix = m.tipo == 'entrada' ? '+' : '-';
                         final cant = double.tryParse(m.cantidad.toString()) ?? 0.0;
-                        final displayCant = cant == cant.toInt() ? cant.toInt().toString() : cant.toString();
+                        final displayStr = _formatCantidadMovimiento(cant, insumo.unidad.value);
                         
                         return _MovementItem(
-                          title: '$prefix$displayCant${insumo.unidad.value}',
+                          title: '$prefix$displayStr',
                           subtitle: _formatMotivo(m.motivo),
                           date: dateStr,
                           isEntry: m.tipo == 'entrada',
@@ -414,6 +439,24 @@ class InsumoDetailScreen extends ConsumerWidget {
     return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]}, ${date.year}';
   }
 
+  /// Convierte un valor almacenado en unidad base a una representación
+  /// legible. Si el valor es menor a 1 y la unidad es convertible (kg→g, l→ml),
+  /// muestra la sub-unidad. Ej: 0.02 kg → "20g", 0.5 l → "500ml".
+  String _formatCantidadMovimiento(double cantidad, String? unidadBase) {
+    if ((unidadBase == 'kg' || unidadBase == 'l') && cantidad > 0 && cantidad < 1) {
+      final subUnidad = unidadBase == 'kg' ? 'g' : 'ml';
+      final enSubUnidad = cantidad * 1000;
+      final display = enSubUnidad == enSubUnidad.toInt()
+          ? enSubUnidad.toInt().toString()
+          : enSubUnidad.toStringAsFixed(1);
+      return '$display$subUnidad';
+    }
+    final display = cantidad == cantidad.toInt()
+        ? cantidad.toInt().toString()
+        : cantidad.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+    return '$display${unidadBase ?? ""}';
+  }
+
   String _formatMotivo(String motivo) {
     switch (motivo) {
       case 'compra': return 'Compra';
@@ -432,6 +475,7 @@ class InsumoDetailScreen extends ConsumerWidget {
       insumo: insumo,
       onMovimientoRegistrado: () {
         ref.invalidate(insumoByIdProvider(insumoId));
+        ref.invalidate(insumoMovementsProvider(insumoId));
         ref.invalidate(alacenaProvider);
       },
     );
