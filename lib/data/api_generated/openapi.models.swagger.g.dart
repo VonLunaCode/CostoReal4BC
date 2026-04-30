@@ -396,7 +396,8 @@ RecetaResponse _$RecetaResponseFromJson(Map<String, dynamic> json) =>
                   GastoOcultoResponse.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      costoCalculado: json['costo_calculado'],
+      costoPorPorcion: json['costo_por_porcion'],
+      precioSugerido: json['precio_sugerido'],
     );
 
 Map<String, dynamic> _$RecetaResponseToJson(RecetaResponse instance) =>
@@ -410,7 +411,8 @@ Map<String, dynamic> _$RecetaResponseToJson(RecetaResponse instance) =>
       'ingredientes': instance.ingredientes.map((e) => e.toJson()).toList(),
       'pasos': instance.pasos.map((e) => e.toJson()).toList(),
       'gastos_ocultos': instance.gastosOcultos.map((e) => e.toJson()).toList(),
-      'costo_calculado': instance.costoCalculado,
+      'costo_por_porcion': instance.costoPorPorcion,
+      'precio_sugerido': instance.precioSugerido,
     };
 
 RecetaUpdate _$RecetaUpdateFromJson(Map<String, dynamic> json) => RecetaUpdate(
@@ -421,14 +423,15 @@ RecetaUpdate _$RecetaUpdateFromJson(Map<String, dynamic> json) => RecetaUpdate(
       pasos: json['pasos'],
     );
 
-Map<String, dynamic> _$RecetaUpdateToJson(RecetaUpdate instance) =>
-    <String, dynamic>{
-      'nombre': instance.nombre,
-      'porciones': instance.porciones,
-      'margen_pct': instance.margenPct,
-      'ingredientes': instance.ingredientes,
-      'pasos': instance.pasos,
-    };
+Map<String, dynamic> _$RecetaUpdateToJson(RecetaUpdate instance) {
+  final result = <String, dynamic>{};
+  if (instance.nombre != null) result['nombre'] = instance.nombre;
+  if (instance.porciones != null) result['porciones'] = instance.porciones;
+  if (instance.margenPct != null) result['margen_pct'] = instance.margenPct;
+  if (instance.ingredientes != null) result['ingredientes'] = instance.ingredientes;
+  if (instance.pasos != null) result['pasos'] = instance.pasos;
+  return result;
+}
 
 ToggleGastoRequest _$ToggleGastoRequestFromJson(Map<String, dynamic> json) =>
     ToggleGastoRequest(

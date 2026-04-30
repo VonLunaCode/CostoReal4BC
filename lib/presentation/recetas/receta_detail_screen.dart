@@ -278,15 +278,36 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
     );
   }
 
+  // Convierte cantidadUsada a la misma unidad base que cantidadComprada del insumo.
+  // El form ya normaliza al guardar, pero esto protege contra datos creados por API directamente.
+  double _factorConversion(String unidadInsumo, String unidadIngrediente) {
+    final base = unidadInsumo.toLowerCase();
+    final uso = unidadIngrediente.toLowerCase();
+    if (base == uso) return 1.0;
+    if (base == 'kg' && uso == 'g') return 0.001;
+    if (base == 'g' && uso == 'kg') return 1000.0;
+    if (base == 'l' && uso == 'ml') return 0.001;
+    if (base == 'ml' && uso == 'l') return 1000.0;
+    return 1.0;
+  }
+
   double _calcularCostoInsumos(RecetaResponse receta) {
     double costo = 0.0;
     for (final ing in receta.ingredientes) {
       final precio = double.tryParse(ing.insumo.precioCompra.toString()) ?? 0.0;
       final cantComp = double.tryParse(ing.insumo.cantidadComprada.toString()) ?? 1.0;
-      final cantUsada = double.tryParse(ing.cantidadUsada.toString()) ?? 0.0;
+      final cantUsadaRaw = double.tryParse(ing.cantidadUsada.toString()) ?? 0.0;
+      final factor = _factorConversion(
+        ing.insumo.unidad.value ?? '',
+        ing.unidad,
+      );
+      final cantUsada = cantUsadaRaw * factor;
       if (cantComp > 0) costo += (precio / cantComp) * cantUsada;
     }
-    return costo > 0 ? costo : (double.tryParse(receta.costoCalculado ?? '0') ?? 0.0);
+    return costo > 0
+        ? costo
+        : (double.tryParse(receta.costoPorPorcion?.toString() ?? '0') ?? 0.0) *
+            (receta.porciones > 0 ? receta.porciones : 1);
   }
 
   Future<void> _guardarSimulacion(RecetaResponse receta) async {
@@ -334,7 +355,6 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
             backgroundColor: Color(0xFF16A34A)
           )
         );
-        setState(() => _isInitialized = false);
         ref.invalidate(recetaDetailProvider(widget.id));
       }
     } catch (e) {

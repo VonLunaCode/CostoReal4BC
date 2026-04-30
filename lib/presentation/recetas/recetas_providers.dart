@@ -6,11 +6,11 @@ import '../../data/api_generated/openapi.models.swagger.dart';
 final recetasProvider = FutureProvider.autoDispose<List<RecetaResponse>>((ref) async {
   final api = ref.watch(apiProvider);
   final response = await api.apiV1RecetasGet();
-  
+
   if (!response.isSuccessful) {
     throw Exception(response.error ?? 'Error al obtener recetas');
   }
-  
+
   return response.body ?? [];
 });
 

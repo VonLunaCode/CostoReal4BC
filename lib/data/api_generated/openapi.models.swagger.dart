@@ -1851,7 +1851,8 @@ class RecetaResponse {
     required this.ingredientes,
     required this.pasos,
     required this.gastosOcultos,
-    this.costoCalculado,
+    this.costoPorPorcion,
+    this.precioSugerido,
   });
 
   factory RecetaResponse.fromJson(Map<String, dynamic> json) =>
@@ -1878,8 +1879,10 @@ class RecetaResponse {
   final List<PasoResponse> pasos;
   @JsonKey(name: 'gastos_ocultos', defaultValue: <GastoOcultoResponse>[])
   final List<GastoOcultoResponse> gastosOcultos;
-  @JsonKey(name: 'costo_calculado')
-  final dynamic costoCalculado;
+  @JsonKey(name: 'costo_por_porcion')
+  final dynamic costoPorPorcion;
+  @JsonKey(name: 'precio_sugerido')
+  final dynamic precioSugerido;
   static const fromJsonFactory = _$RecetaResponseFromJson;
 
   @override
@@ -1909,9 +1912,12 @@ class RecetaResponse {
             (identical(other.gastosOcultos, gastosOcultos) ||
                 const DeepCollectionEquality()
                     .equals(other.gastosOcultos, gastosOcultos)) &&
-            (identical(other.costoCalculado, costoCalculado) ||
+            (identical(other.costoPorPorcion, costoPorPorcion) ||
                 const DeepCollectionEquality()
-                    .equals(other.costoCalculado, costoCalculado)));
+                    .equals(other.costoPorPorcion, costoPorPorcion)) &&
+            (identical(other.precioSugerido, precioSugerido) ||
+                const DeepCollectionEquality()
+                    .equals(other.precioSugerido, precioSugerido)));
   }
 
   @override
@@ -1928,7 +1934,8 @@ class RecetaResponse {
       const DeepCollectionEquality().hash(ingredientes) ^
       const DeepCollectionEquality().hash(pasos) ^
       const DeepCollectionEquality().hash(gastosOcultos) ^
-      const DeepCollectionEquality().hash(costoCalculado) ^
+      const DeepCollectionEquality().hash(costoPorPorcion) ^
+      const DeepCollectionEquality().hash(precioSugerido) ^
       runtimeType.hashCode;
 }
 
@@ -1943,7 +1950,8 @@ extension $RecetaResponseExtension on RecetaResponse {
       List<IngredienteResponse>? ingredientes,
       List<PasoResponse>? pasos,
       List<GastoOcultoResponse>? gastosOcultos,
-      dynamic costoCalculado}) {
+      dynamic costoPorPorcion,
+      dynamic precioSugerido}) {
     return RecetaResponse(
         id: id ?? this.id,
         usuarioId: usuarioId ?? this.usuarioId,
@@ -1954,7 +1962,8 @@ extension $RecetaResponseExtension on RecetaResponse {
         ingredientes: ingredientes ?? this.ingredientes,
         pasos: pasos ?? this.pasos,
         gastosOcultos: gastosOcultos ?? this.gastosOcultos,
-        costoCalculado: costoCalculado ?? this.costoCalculado);
+        costoPorPorcion: costoPorPorcion ?? this.costoPorPorcion,
+        precioSugerido: precioSugerido ?? this.precioSugerido);
   }
 
   RecetaResponse copyWithWrapped(
@@ -1967,7 +1976,8 @@ extension $RecetaResponseExtension on RecetaResponse {
       Wrapped<List<IngredienteResponse>>? ingredientes,
       Wrapped<List<PasoResponse>>? pasos,
       Wrapped<List<GastoOcultoResponse>>? gastosOcultos,
-      Wrapped<dynamic>? costoCalculado}) {
+      Wrapped<dynamic>? costoPorPorcion,
+      Wrapped<dynamic>? precioSugerido}) {
     return RecetaResponse(
         id: (id != null ? id.value : this.id),
         usuarioId: (usuarioId != null ? usuarioId.value : this.usuarioId),
@@ -1980,9 +1990,12 @@ extension $RecetaResponseExtension on RecetaResponse {
         pasos: (pasos != null ? pasos.value : this.pasos),
         gastosOcultos:
             (gastosOcultos != null ? gastosOcultos.value : this.gastosOcultos),
-        costoCalculado: (costoCalculado != null
-            ? costoCalculado.value
-            : this.costoCalculado));
+        costoPorPorcion: (costoPorPorcion != null
+            ? costoPorPorcion.value
+            : this.costoPorPorcion),
+        precioSugerido: (precioSugerido != null
+            ? precioSugerido.value
+            : this.precioSugerido));
   }
 }
 

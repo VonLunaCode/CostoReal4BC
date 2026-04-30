@@ -222,8 +222,8 @@ class RecetaCardWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final double costoTotal = double.tryParse(receta.costoCalculado?.toString() ?? '0') ?? 0.0;
-    final double costoPorPorcion = receta.porciones > 0 ? costoTotal / receta.porciones : 0.0;
+    final double costoPorPorcion = double.tryParse(receta.costoPorPorcion?.toString() ?? '0') ?? 0.0;
+    final double precioSugerido = double.tryParse(receta.precioSugerido?.toString() ?? '0') ?? 0.0;
 
     return Dismissible(
       key: ValueKey(receta.id),
@@ -297,7 +297,10 @@ class RecetaCardWidget extends ConsumerWidget {
         }
       },
       child: GestureDetector(
-        onTap: () => context.push('/recetas/${receta.id}'),
+        onTap: () async {
+          await context.push('/recetas/${receta.id}');
+          ref.invalidate(recetasProvider);
+        },
         child: Container(
           margin: const EdgeInsets.only(bottom: 20),
           decoration: BoxDecoration(
@@ -348,8 +351,8 @@ class RecetaCardWidget extends ConsumerWidget {
                           children: [
                             const Text('PRECIO SUGERIDO', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFBC985D))),
                             Text(
-                              costoPorPorcion > 0
-                                  ? '\$${(costoPorPorcion * (1 + (double.tryParse(receta.margenPct.toString()) ?? 0.0) / 100)).toStringAsFixed(2)}'
+                              precioSugerido > 0
+                                  ? '\$${precioSugerido.toStringAsFixed(2)}'
                                   : '—',
                               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF2D3748)),
                             ),
