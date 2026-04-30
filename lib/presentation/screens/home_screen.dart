@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../auth_provider.dart';
+import '../widgets/kitchy_bottom_nav.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -9,33 +10,54 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAF8F1),
       appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(fontFamily: 'serif', fontSize: 28)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        title: const Text(
+          'Kitchy', 
+          style: TextStyle(
+            fontFamily: 'Georgia', 
+            fontStyle: FontStyle.italic,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2C2623),
+          )
+        ),
         actions: [
-          IconButton(
-            onPressed: () => ref.read(authProvider.notifier).logout(),
-            icon: const Icon(Icons.logout),
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: GestureDetector(
+              onTap: () => ref.read(authProvider.notifier).logout(),
+              child: const CircleAvatar(
+                radius: 16,
+                backgroundColor: Color(0xFFEAE8E1),
+                child: Icon(Icons.person, color: Color(0xFF718096), size: 20),
+              ),
+            ),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               '¡HOLA, CHEF!',
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
                 letterSpacing: 2,
-                color: Color(0xFF718096),
+                color: Color(0xFF807667),
               ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Bienvenido de vuelta',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D3748)),
+              style: TextStyle(fontSize: 28, fontFamily: 'Georgia', fontWeight: FontWeight.bold, color: Color(0xFF2C2623)),
             ),
             const SizedBox(height: 32),
             _buildMainCard(
@@ -51,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
               title: 'Mis Recetas',
               subtitle: 'Costea y planifica tu menú',
               icon: Icons.restaurant_menu,
-              onTap: () {},
+              onTap: () => context.push('/recetas'),
             ),
             const SizedBox(height: 16),
             _buildMainCard(
@@ -61,21 +83,12 @@ class HomeScreen extends ConsumerWidget {
               icon: Icons.bar_chart,
               onTap: () {},
             ),
+            const SizedBox(height: 100),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: const Color(0xFFBC985D),
-        unselectedItemColor: const Color(0xFF718096),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Alacena'),
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Recetas'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
-        ],
-      ),
+      extendBody: true,
+      bottomNavigationBar: const KitchyBottomNav(currentIndex: -1),
     );
   }
 
@@ -85,46 +98,56 @@ class HomeScreen extends ConsumerWidget {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: Colors.black.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2C2623).withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFBC985D).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFC69E57).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: const Color(0xFFC69E57), size: 28),
                 ),
-                child: Icon(icon, color: const Color(0xFFBC985D), size: 30),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2D3748)),
-                    ),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(color: Color(0xFF718096), fontSize: 14),
-                    ),
-                  ],
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(fontFamily: 'Georgia', fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C2623)),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(color: Color(0xFF807667), fontSize: 13),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Icon(Icons.chevron_right, color: Color(0xFF718096)),
-            ],
+                const Icon(Icons.chevron_right, color: Color(0xFFD2C5B4)),
+              ],
+            ),
           ),
         ),
       ),

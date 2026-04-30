@@ -18,6 +18,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+  String? _errorMessage;
 
   void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
@@ -33,162 +36,253 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
       if (mounted) {
         if (response.isSuccessful) {
+          setState(() => _errorMessage = null);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('¡Registro exitoso! Iniciando sesión...'), backgroundColor: Colors.green),
+            const SnackBar(content: Text('¡Registro exitoso! Iniciando sesión...'), backgroundColor: Color(0xFF6A9B7A)),
           );
           // Auto login tras registro exitoso
           await ref.read(authProvider.notifier).login(_emailController.text, _passwordController.text);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error en registro. El correo podría ya existe.'), backgroundColor: Colors.red),
-          );
+          setState(() => _errorMessage = 'Error en registro. El correo podría ya existir.');
         }
       }
       if (mounted) setState(() => _isLoading = false);
+    } else {
+      setState(() => _errorMessage = 'Por favor, revisa los campos en rojo.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: const Color(0xFFFAF8F1),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: const EdgeInsets.all(32),
+            constraints: const BoxConstraints(maxWidth: 420),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFD2C5B4).withOpacity(0.3)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: const Color(0xFF2C2623).withOpacity(0.06),
+                  blurRadius: 40,
+                  offset: const Offset(0, 20),
                 ),
               ],
             ),
             child: Form(
               key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Crear Cuenta',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF2D3748),
-                      letterSpacing: -1,
+                  // Header
+                  Column(
+                    children: [
+                      const Text(
+                        'KITCHY',
+                        style: TextStyle(
+                          fontFamily: 'Georgia',
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Color(0xFF795918),
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'GESTIÓN Y COSTEO',
+                        style: TextStyle(
+                          fontSize: 12,
+                          letterSpacing: 2,
+                          color: const Color(0xFF4E4639).withOpacity(0.7),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Feedback Banner
+                  if (_errorMessage != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB5656B).withOpacity(0.05),
+                        border: Border.all(color: const Color(0xFFB5656B).withOpacity(0.1)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Color(0xFFB5656B), size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Color(0xFFB5656B),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Email
+                  const Padding(
+                    padding: EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'CORREO ELECTRÓNICO',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6D605A),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Únete a la comunidad de Kitchy hoy mismo.',
-                    style: TextStyle(color: Color(0xFF718096), fontSize: 16),
-                  ),
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Email',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A5568)),
-                  ),
-                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    style: const TextStyle(color: Color(0xFF2C2623)),
                     decoration: InputDecoration(
                       hintText: 'ejemplo@correo.com',
+                      hintStyle: TextStyle(color: const Color(0xFF4E4639).withOpacity(0.4)),
                       filled: true,
-                      fillColor: const Color(0xFFEDF2F7),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      fillColor: const Color(0xFFEAE8E1),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Por favor ingresa un email';
-                      if (!value.contains('@')) return 'Ingresa un email válido';
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Por favor ingresa un email';
+                      if (!v.contains('@')) return 'Email no válido';
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Contraseña',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A5568)),
+                  const SizedBox(height: 20),
+
+                  // Password
+                  const Padding(
+                    padding: EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'CONTRASEÑA',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6D605A),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: _obscurePassword,
+                    style: const TextStyle(color: Color(0xFF2C2623)),
                     decoration: InputDecoration(
-                      hintText: 'Mínimo 6 caracteres',
+                      hintText: '••••••••',
+                      hintStyle: TextStyle(color: const Color(0xFF4E4639).withOpacity(0.4)),
                       filled: true,
-                      fillColor: const Color(0xFFEDF2F7),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                      fillColor: const Color(0xFFEAE8E1),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          color: const Color(0xFF4E4639).withOpacity(0.6),
+                        ),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
-                      prefixIcon: const Icon(Icons.lock_outline),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) return 'Por favor ingresa tu contraseña';
-                      if (value.length < 6) return 'Mínimo 6 caracteres';
-                      return null;
-                    },
+                    validator: (v) => (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Confirmar Contraseña',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF4A5568)),
+                  const SizedBox(height: 20),
+
+                  // Confirm Password
+                  const Padding(
+                    padding: EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'REPETIR CONTRASEÑA',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF6D605A),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _confirmPasswordController,
-                    obscureText: true,
+                    obscureText: _obscureConfirm,
+                    style: const TextStyle(color: Color(0xFF2C2623)),
                     decoration: InputDecoration(
-                      hintText: 'Repite tu contraseña',
+                      hintText: '••••••••',
+                      hintStyle: TextStyle(color: const Color(0xFF4E4639).withOpacity(0.4)),
                       filled: true,
-                      fillColor: const Color(0xFFEDF2F7),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                      fillColor: const Color(0xFFEAE8E1),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          color: const Color(0xFF4E4639).withOpacity(0.6),
+                        ),
+                        onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                       ),
-                      prefixIcon: const Icon(Icons.lock_reset_outlined),
                     ),
-                    validator: (value) {
-                      if (value != _passwordController.text) return 'Las contraseñas no coinciden';
-                      return null;
-                    },
+                    validator: (v) => (v != _passwordController.text) ? 'Las contraseñas no coinciden' : null,
                   ),
-                  const SizedBox(height: 40),
+                  
+                  const SizedBox(height: 32),
+
+                  // Add Account Button
                   SizedBox(
-                    width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2B6CB0), // Azul sólido elegante
+                        backgroundColor: const Color(0xFF6A9B7A), // tertiary-container color
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Registrarse Ahora', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Text('Crear Cuenta', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // Login redirect
                   Center(
                     child: TextButton(
                       onPressed: () => context.pop(),
-                      child: const Text(
-                        '¿Ya tienes cuenta? Inicia sesión',
-                        style: TextStyle(color: Color(0xFF2B6CB0), fontWeight: FontWeight.w600),
-                      ),
+                      style: TextButton.styleFrom(foregroundColor: const Color(0xFF795918)), // primary color
+                      child: const Text('¿Ya tienes cuenta? Iniciar Sesión'),
                     ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // Bottom decorator
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(width: 32, height: 1, color: const Color(0xFFD2C5B4).withOpacity(0.5)),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Icon(Icons.bakery_dining, color: Color(0xFFD2C5B4), size: 16),
+                      ),
+                      Container(width: 32, height: 1, color: const Color(0xFFD2C5B4).withOpacity(0.5)),
+                    ],
                   ),
                 ],
               ),

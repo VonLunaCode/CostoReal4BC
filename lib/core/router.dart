@@ -1,13 +1,23 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../presentation/auth_provider.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/login_screen.dart';
 import '../presentation/screens/register_screen.dart';
+import '../presentation/screens/perfil_screen.dart';
 
 import '../presentation/alacena/alacena_screen.dart';
 import '../presentation/alacena/insumo_form_screen.dart';
 import '../presentation/alacena/insumo_detail_screen.dart';
+import '../presentation/recetas/recetas_list_screen.dart';
+import '../presentation/recetas/receta_detail_screen.dart';
+import '../presentation/recetas/receta_form_screen.dart';
+import '../presentation/recetas/receta_ficha_screen.dart';
+import '../presentation/pedidos/agenda_screen.dart';
+import '../presentation/pedidos/nuevo_pedido_screen.dart';
+import '../presentation/pedidos/pedido_detail_screen.dart';
+import '../data/api_generated/openapi.models.swagger.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -34,7 +44,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: 'crear',
-                builder: (context, state) => const InsumoFormScreen(modo: 'crear'),
+                builder: (context, state) => const InsumoFormScreen(),
+              ),
+              GoRoute(
+                path: 'editar',
+                builder: (context, state) {
+                  final insumo = state.extra as InsumoResponse?;
+                  return InsumoFormScreen(insumoExistente: insumo);
+                },
               ),
               GoRoute(
                 path: ':id',
@@ -45,7 +62,71 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          GoRoute(
+            path: 'recetas',
+            builder: (context, state) => const RecetasListScreen(),
+            routes: [
+              GoRoute(
+                path: 'crear',
+                builder: (context, state) => const RecetaFormScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return RecetaFichaScreen(id: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'simulador',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return RecetaDetailScreen(id: id);
+                    },
+                  ),
+                  GoRoute(
+                    path: 'editar',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      final receta = state.extra as RecetaResponse?;
+                      return RecetaFormScreen(recetaExistente: receta);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'agenda',
+            builder: (context, state) => const AgendaScreen(),
+            routes: [
+              GoRoute(
+                path: 'crear',
+                builder: (context, state) => const NuevoPedidoScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return PedidoDetailScreen(pedidoId: id);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'editar',
+                    builder: (context, state) {
+                      final pedido = state.extra as PedidoResponse?;
+                      return NuevoPedidoScreen(pedidoExistente: pedido);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
+      ),
+      GoRoute(
+        path: '/perfil',
+        builder: (context, state) => const PerfilScreen(),
       ),
       GoRoute(
         path: '/login',

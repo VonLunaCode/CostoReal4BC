@@ -2,17 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
+import './movimiento_stock_bottom_sheet.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
+import '../widgets/kitchy_bottom_nav.dart';
+import 'movimiento_stock_bottom_sheet.dart';
 
+String formatCantidad(String raw, String unidad) {
+  final val = double.tryParse(raw) ?? 0.0;
+  final display = val == val.truncateToDouble()
+      ? val.toInt().toString()
+      : val.toString();
+  return '$display$unidad restantes';
+}
+
+
+/// Provider que gestiona la lista de insumos desde el backend.
 final alacenaProvider = FutureProvider.autoDispose<List<InsumoResponse>>((ref) async {
   final api = ref.watch(apiProvider);
   final response = await api.apiV1InsumosGet();
   if (!response.isSuccessful) {
     throw Exception('Error al cargar insumos: ${response.error}');
   }
-  return response.body ?? [];
+  final list = response.body ?? [];
+  // Ordenamiento inicial: Alfabético por nombre
+  list.sort((a, b) => a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase()));
+  return list;
 });
 
+/// Provider para el filtro de búsqueda.
 final searchQueryProvider = StateProvider.autoDispose<String>((ref) => '');
 
 class AlacenaScreen extends ConsumerWidget {
@@ -24,85 +41,132 @@ class AlacenaScreen extends ConsumerWidget {
     final searchQuery = ref.watch(searchQueryProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFBF9F4), 
       appBar: AppBar(
-        title: const Text('Alacena', style: TextStyle(fontFamily: 'serif', fontSize: 28)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Row(
+          children: [
+            const Icon(Icons.restaurant_menu, color: Color(0xFFB8872A), size: 28),
+            const SizedBox(width: 8),
+            const Text(
+              'Alacena',
+              style: TextStyle(
+                fontFamily: 'Georgia',
+                fontStyle: FontStyle.italic,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2C2623),
+              ),
+            ),
+          ],
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: const Color(0xFFE2E8F0),
-              child: Icon(Icons.person, color: Colors.grey[600]),
+            child: GestureDetector(
+              onTap: () => context.push('/perfil'),
+              child: const CircleAvatar(
+                radius: 20,
+                backgroundColor: Color(0xFFE2E8F0),
+                child: Icon(Icons.person, color: Color(0xFF718096)),
+              ),
             ),
           ),
         ],
       ),
       body: insumosAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: Color(0xFFBC985D)),
+        ),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 60, color: Color(0xFFDC2626)),
+              const SizedBox(height: 16),
+              Text('Error: $err', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(alacenaProvider),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBC985D),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
         data: (insumos) {
-          final filtered = insumos.where((i) => i.nombre.toLowerCase().contains(searchQuery.toLowerCase())).toList();
-          
-          final criticos = filtered.where((i) {
-             final cantActual = double.tryParse(i.cantidadActual) ?? 0.0;
-             final alertaMin = double.tryParse(i.alertaMinimo ?? '0') ?? 0.0;
-             final esCritico = cantActual <= alertaMin;
-             final esDesactualizado = DateTime.now().difference(i.fechaUltimoPrecio).inDays > 30;
-             return esCritico || esDesactualizado;
+          // Filtrado en memoria
+          final filtered = insumos.where((i) {
+            return i.nombre.toLowerCase().contains(searchQuery.toLowerCase());
           }).toList();
 
-          final regulares = filtered.where((i) => !criticos.contains(i)).toList();
+          // Lógica de Alertas y Clasificación
+          final now = DateTime.now();
+          
+          final criticos = filtered.where((i) {
+            final cantActual = double.tryParse(i.cantidadActual) ?? 0.0;
+            final alertaMin = double.tryParse(i.alertaMinimo ?? '0') ?? 0.0;
+            return cantActual <= alertaMin;
+          }).toList();
+
+          final desactualizados = filtered.where((i) {
+            final diff = now.difference(i.fechaUltimoPrecio).inDays;
+            return diff > 30 && !criticos.contains(i);
+          }).toList();
+
+          final regulares = filtered.where((i) {
+            return !criticos.contains(i) && !desactualizados.contains(i);
+          }).toList();
 
           return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(alacenaProvider);
-              await ref.read(alacenaProvider.future);
-            },
+            onRefresh: () => ref.refresh(alacenaProvider.future),
+            color: const Color(0xFFBC985D),
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
+                const SizedBox(height: 8),
                 // Search Bar
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar insumo...',
-                    prefixIcon: const Icon(Icons.search),
-                    fillColor: Colors.white,
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none,
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEBE6D9), // Light grayish-beige from design
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TextField(
+                    onChanged: (val) => ref.read(searchQueryProvider.notifier).state = val,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar insumos...',
+                      hintStyle: const TextStyle(color: Color(0xFF9E9E9E)),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF9E9E9E)),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                   ),
-                  onChanged: (val) => ref.read(searchQueryProvider.notifier).state = val,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                if (criticos.isNotEmpty) ...[
-                  const Text(
-                    '⚠️ ATENCIÓN NECESARIA',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                      color: Color(0xFF718096),
-                    ),
-                  ),
+                if (criticos.isNotEmpty || desactualizados.isNotEmpty) ...[
+                  const _SectionHeader(title: 'ATENCIÓN NECESARIA', color: Color(0xFF718096)),
                   const SizedBox(height: 12),
-                  ...criticos.map((i) => InsumoCardWidget(insumo: i, isAlert: true)),
+                  ...criticos.map((i) => _InsumoCard(insumo: i, type: _CardType.critical)),
+                  ...desactualizados.map((i) => _InsumoCard(insumo: i, type: _CardType.warning)),
                   const SizedBox(height: 24),
                 ],
 
-                const Text(
-                  'INSUMOS EN ALACENA',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                    color: Color(0xFF718096),
-                  ),
-                ),
+                const _SectionHeader(title: 'INSUMOS EN ALACENA', color: Color(0xFF718096)),
                 const SizedBox(height: 12),
-                ...regulares.map((i) => InsumoCardWidget(insumo: i, isAlert: false)),
-                const SizedBox(height: 80), // Space for FAB
+                if (regulares.isEmpty && criticos.isEmpty && desactualizados.isEmpty)
+                   const Padding(
+                     padding: EdgeInsets.symmetric(vertical: 40),
+                     child: Text('No se encontraron insumos', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                   ),
+                ...regulares.map((i) => _InsumoCard(insumo: i, type: _CardType.normal)),
+                const SizedBox(height: 100), // Espacio para el FAB
               ],
             ),
           );
@@ -110,122 +174,243 @@ class AlacenaScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/alacena/crear'),
-        backgroundColor: const Color(0xFFBC985D),
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: const Color(0xFFC29F5C),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        selectedItemColor: const Color(0xFFBC985D),
-        unselectedItemColor: const Color(0xFF718096),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Alacena'),
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Recetas'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Perfil'),
-        ],
-      ),
+      extendBody: true,
+      bottomNavigationBar: const KitchyBottomNav(currentIndex: 2),
     );
   }
 }
 
-class InsumoCardWidget extends StatelessWidget {
-  final InsumoResponse insumo;
-  final bool isAlert;
-
-  const InsumoCardWidget({super.key, required this.insumo, required this.isAlert});
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final Color color;
+  const _SectionHeader({required this.title, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    final cantActual = double.tryParse(insumo.cantidadActual) ?? 0.0;
-    final alertaMin = double.tryParse(insumo.alertaMinimo ?? '0') ?? 0.0;
-    final esCritico = cantActual <= alertaMin;
-    final esDesactualizado = DateTime.now().difference(insumo.fechaUltimoPrecio).inDays > 30;
-
-    Color bgColor = Colors.white;
-    Color textColor = const Color(0xFF2D3748);
-    Color? badgeColor;
-    String badgeText = '';
-
-    if (esCritico) {
-      bgColor = const Color(0xFFFFF5F5);
-      textColor = const Color(0xFFDC2626);
-      badgeColor = const Color(0xFFDC2626);
-      badgeText = 'STOCK BAJO';
-    } else if (esDesactualizado) {
-      bgColor = const Color(0xFFFEFCBF);
-      textColor = const Color(0xFFD97706);
-      badgeColor = const Color(0xFFD97706);
-      badgeText = 'PRECIO VIEJO';
-    }
-
-    return Card(
-      color: bgColor,
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.black.withOpacity(0.05)),
-      ),
-      child: InkWell(
-        onTap: () => context.push('/alacena/${insumo.id}'),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            border: esCritico 
-                ? const Border(left: BorderSide(color: Color(0xFFDC2626), width: 6)) 
-                : null,
+    return Row(
+      children: [
+        if (title.contains('NECESARIA')) ...[
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: Color(0xFFDC2626),
+              shape: BoxShape.circle,
+            ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: (badgeColor ?? const Color(0xFFBC985D)).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    esCritico ? Icons.inventory_2 : Icons.warning_amber,
-                    color: badgeColor ?? const Color(0xFFBC985D),
-                  ),
+          const SizedBox(width: 8),
+        ],
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.5,
+            color: color.withOpacity(0.7),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+enum _CardType { critical, warning, normal }
+
+class _InsumoCard extends ConsumerWidget {
+  final InsumoResponse insumo;
+  final _CardType type;
+  const _InsumoCard({required this.insumo, required this.type});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = DateTime.now();
+
+    return Dismissible(
+      key: ValueKey(insumo.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFDC2626),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+      ),
+      confirmDismiss: (_) async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text(
+              '¿Eliminar insumo?',
+              style: TextStyle(fontFamily: 'Georgia', fontWeight: FontWeight.bold),
+            ),
+            content: Text('¿Seguro que deseas eliminar "${insumo.nombre}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancelar', style: TextStyle(color: Color(0xFF718096))),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFDC2626),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmed != true) return false;
+
+        try {
+          final api = ref.read(apiProvider);
+          final response = await api.apiV1InsumosIdDelete(id: insumo.id);
+          if (response.isSuccessful) {
+            ref.invalidate(alacenaProvider);
+            return true;
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Error al eliminar el insumo'),
+                  backgroundColor: Color(0xFFDC2626),
+                ),
+              );
+            }
+            return false;
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: $e'),
+                backgroundColor: const Color(0xFFDC2626),
+              ),
+            );
+          }
+          return false;
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4A4A4A).withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push('/alacena/${insumo.id}'),
+            onLongPress: () => showMovimientoStockBottomSheet(
+              context: context,
+              insumo: insumo,
+              onMovimientoRegistrado: () => ref.invalidate(alacenaProvider),
+            ),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (type == _CardType.critical || type == _CardType.warning) ...[
+                    if (type == _CardType.critical)
+                      const _AlertBadge(
+                        label: 'STOCK BAJO',
+                        icon: Icons.inventory_2_outlined,
+                        color: Color(0xFFDC2626),
+                        bgColor: Color(0xFFFDE8E8),
+                      ),
+                    if (type == _CardType.warning)
+                      const _AlertBadge(
+                        label: 'PRECIO DESACTUALIZADO',
+                        icon: Icons.warning_amber_rounded,
+                        color: Color(0xFFD97706),
+                        bgColor: Color(0xFFFEF3C7),
+                      ),
+                    const SizedBox(height: 12),
+                  ],
+                  
+                  Row(
                     children: [
-                      Text(
-                        insumo.nombre,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
+                      // Imagen / Icono de Insumo
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2C2623), // Dark background matching the image placeholder
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            insumo.nombre.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ),
-                      Text(
-                        '${insumo.cantidadActual} ${insumo.unidad.toString().split(".").last}',
-                        style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 13),
+                      const SizedBox(width: 14),
+                      // Información
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              insumo.nombre,
+                              style: const TextStyle(
+                                fontFamily: 'Georgia',
+                                fontSize: 16,
+                                color: Color(0xFF2C2623),
+                                height: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              formatCantidad(insumo.cantidadActual, insumo.unidad.value ?? ''),
+                              style: const TextStyle(
+                                color: Color(0xFF807667),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      Text(
-                        'Precio: $${insumo.precioCompra}',
-                        style: TextStyle(color: textColor.withOpacity(0.5), fontSize: 12),
-                      ),
+                      // Conditional "ULT. COMPRA" info if type is normal
+                      if (type == _CardType.normal) ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'ÚLT. COMPRA',
+                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: Color(0xFFA0AEC0)),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Hace ${now.difference(insumo.fechaUltimoPrecio).inDays} días',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF2C2623)),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
-                ),
-                if (badgeText.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: badgeColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      badgeText,
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                const Icon(Icons.chevron_right, color: Color(0xFF718096)),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -233,3 +418,46 @@ class InsumoCardWidget extends StatelessWidget {
     );
   }
 }
+
+class _AlertBadge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Color bgColor;
+
+  const _AlertBadge({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
