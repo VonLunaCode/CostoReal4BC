@@ -9,12 +9,13 @@ class AppConfig {
   AppConfig({required this.baseUrl, required this.flavor});
 }
 
-/// Provider que maneja la configuración del entorno.
-/// Para el emulador Samsung S25 Ultra (Android), usamos 10.0.2.2 para conectar al Docker local.
+// Emulador: flutter run
+// Dispositivo físico: flutter run --dart-define=API_HOST=192.168.100.50
+const _apiHost = String.fromEnvironment('API_HOST', defaultValue: '10.0.2.2');
+
 final appConfigProvider = Provider<AppConfig>((ref) {
-  // TODO: Implementar lógica de alternancia real (dart-define) si es necesario.
   return AppConfig(
-    baseUrl: 'http://10.0.2.2:8000', 
+    baseUrl: 'http://$_apiHost:8000/',
     flavor: AppFlavor.dev,
   );
 });

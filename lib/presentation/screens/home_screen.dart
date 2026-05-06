@@ -1,14 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../services/notification_service.dart';
 import '../auth_provider.dart';
 import '../widgets/kitchy_bottom_nav.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _requestNotificationsOnce();
+  }
+
+  Future<void> _requestNotificationsOnce() async {
+    const storage = FlutterSecureStorage();
+    final alreadyRequested = await storage.read(key: 'notifications_requested');
+    if (alreadyRequested == null) {
+      await NotificationService.instance.requestPermissions();
+      await storage.write(key: 'notifications_requested', value: 'true');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F1),
       appBar: AppBar(

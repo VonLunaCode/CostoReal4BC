@@ -17,12 +17,17 @@ import '../presentation/recetas/receta_ficha_screen.dart';
 import '../presentation/pedidos/agenda_screen.dart';
 import '../presentation/pedidos/nuevo_pedido_screen.dart';
 import '../presentation/pedidos/pedido_detail_screen.dart';
+import '../presentation/cocina/cronometro_widget.dart';
+import '../presentation/cocina/modo_cocina_screen.dart';
+import '../presentation/cocina/confirmar_alarma_screen.dart';
 import '../data/api_generated/openapi.models.swagger.dart';
+import 'app_keys.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
+    navigatorKey: appNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
       final isAuth = authState.status == AuthStatus.authenticated;
@@ -122,6 +127,29 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          GoRoute(
+            path: 'cocina',
+            redirect: (_, __) => null,
+            routes: [
+              GoRoute(
+                path: 'modo',
+                builder: (context, state) {
+                  final receta = state.extra as RecetaResponse;
+                  return ModoCocinaScreen(receta: receta);
+                },
+              ),
+              GoRoute(
+                path: 'cronometro',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>;
+                  return CronometroWidget(
+                    temporizador: extra['temporizador'] as TemporizadorResponse,
+                    paso: extra['paso'] as PasoResponse,
+                  );
+                },
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(
@@ -135,6 +163,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/confirmar-alarma',
+        builder: (context, state) {
+          final temporizadorId = state.uri.queryParameters['temporizadorId'] ?? '';
+          final nombreFase = Uri.decodeComponent(state.uri.queryParameters['nombreFase'] ?? 'Fase');
+          return ConfirmarAlarmaScreen(temporizadorId: temporizadorId, nombreFase: nombreFase);
+        },
       ),
     ],
   );

@@ -317,7 +317,7 @@ final class _$Openapi extends Openapi {
   @override
   Future<Response<PedidoResponse>> _apiV1PedidosPedidoIdPut({
     required String? pedidoId,
-    required dynamic body,
+    required PedidoUpdate? body,
   }) {
     final Uri $url = Uri.parse('/api/v1/pedidos/${pedidoId}');
     final $body = body;
@@ -358,6 +358,56 @@ final class _$Openapi extends Openapi {
       parameters: $params,
     );
     return client.send<PedidoResponse, PedidoResponse>($request);
+  }
+
+  @override
+  Future<Response<List<TemporizadorResponse>>> _apiV1TemporizadoresGet() {
+    final Uri $url = Uri.parse('/api/v1/temporizadores/');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client
+        .send<List<TemporizadorResponse>, TemporizadorResponse>($request);
+  }
+
+  @override
+  Future<Response<TemporizadorResponse>> _apiV1TemporizadoresPost(
+      {required TemporizadorCreate? body}) {
+    final Uri $url = Uri.parse('/api/v1/temporizadores/');
+    final $body = body;
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<TemporizadorResponse, TemporizadorResponse>($request);
+  }
+
+  @override
+  Future<Response<TemporizadorResponse>> _apiV1TemporizadoresIdCancelarPatch(
+      {required String? id}) {
+    final Uri $url = Uri.parse('/api/v1/temporizadores/${id}/cancelar');
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<TemporizadorResponse, TemporizadorResponse>($request);
+  }
+
+  @override
+  Future<Response<TemporizadorResponse>> _apiV1TemporizadoresIdConfirmarPatch(
+      {required String? id}) {
+    final Uri $url = Uri.parse('/api/v1/temporizadores/${id}/confirmar');
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<TemporizadorResponse, TemporizadorResponse>($request);
   }
 
   @override

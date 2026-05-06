@@ -423,15 +423,50 @@ RecetaUpdate _$RecetaUpdateFromJson(Map<String, dynamic> json) => RecetaUpdate(
       pasos: json['pasos'],
     );
 
-Map<String, dynamic> _$RecetaUpdateToJson(RecetaUpdate instance) {
-  final result = <String, dynamic>{};
-  if (instance.nombre != null) result['nombre'] = instance.nombre;
-  if (instance.porciones != null) result['porciones'] = instance.porciones;
-  if (instance.margenPct != null) result['margen_pct'] = instance.margenPct;
-  if (instance.ingredientes != null) result['ingredientes'] = instance.ingredientes;
-  if (instance.pasos != null) result['pasos'] = instance.pasos;
-  return result;
-}
+Map<String, dynamic> _$RecetaUpdateToJson(RecetaUpdate instance) =>
+    <String, dynamic>{
+      'nombre': instance.nombre,
+      'porciones': instance.porciones,
+      'margen_pct': instance.margenPct,
+      'ingredientes': instance.ingredientes,
+      'pasos': instance.pasos,
+    };
+
+TemporizadorCreate _$TemporizadorCreateFromJson(Map<String, dynamic> json) =>
+    TemporizadorCreate(
+      pasoRecetaId: json['paso_receta_id'] as String,
+      duracionSegundos: (json['duracion_segundos'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$TemporizadorCreateToJson(TemporizadorCreate instance) =>
+    <String, dynamic>{
+      'paso_receta_id': instance.pasoRecetaId,
+      'duracion_segundos': instance.duracionSegundos,
+    };
+
+TemporizadorResponse _$TemporizadorResponseFromJson(
+        Map<String, dynamic> json) =>
+    TemporizadorResponse(
+      id: json['id'] as String,
+      pasoRecetaId: json['paso_receta_id'] as String,
+      usuarioId: json['usuario_id'] as String,
+      duracionSegundos: (json['duracion_segundos'] as num).toInt(),
+      estado: json['estado'] as String,
+      fechaInicio: json['fecha_inicio'],
+      fechaConfirmacion: json['fecha_confirmacion'],
+    );
+
+Map<String, dynamic> _$TemporizadorResponseToJson(
+        TemporizadorResponse instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'paso_receta_id': instance.pasoRecetaId,
+      'usuario_id': instance.usuarioId,
+      'duracion_segundos': instance.duracionSegundos,
+      'estado': instance.estado,
+      'fecha_inicio': instance.fechaInicio,
+      'fecha_confirmacion': instance.fechaConfirmacion,
+    };
 
 ToggleGastoRequest _$ToggleGastoRequestFromJson(Map<String, dynamic> json) =>
     ToggleGastoRequest(

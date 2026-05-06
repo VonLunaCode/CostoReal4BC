@@ -161,22 +161,15 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
         final body = PedidoUpdate(
           clienteNombre: _nombreController.text.trim(),
           clienteWhatsapp: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
-          fechaEntrega: fechaEntregaFinal.toUtc(),
+          fechaEntrega: fechaEntregaFinal.toUtc().toIso8601String(),
           puntoEntrega: _puntoEntregaController.text.trim().isEmpty ? null : _puntoEntregaController.text.trim(),
           notas: _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
-          lineas: lineasPost,
+          lineas: lineasPost.map((l) => l.toJson()).toList(),
         );
-        final bodyMap = body.toJson();
-        if (body.fechaEntrega != null && body.fechaEntrega is DateTime) {
-          bodyMap['fecha_entrega'] = (body.fechaEntrega as DateTime).toIso8601String();
-        }
-        if (body.lineas != null) {
-          bodyMap['lineas'] = body.lineas!.map((l) => l.toJson()).toList();
-        }
 
         final response = await api.apiV1PedidosPedidoIdPut(
-          pedidoId: widget.pedidoExistente!.id, 
-          body: bodyMap,
+          pedidoId: widget.pedidoExistente!.id,
+          body: body,
         );
         
         if (response.isSuccessful) {

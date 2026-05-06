@@ -2091,6 +2091,183 @@ extension $RecetaUpdateExtension on RecetaUpdate {
 }
 
 @JsonSerializable(explicitToJson: true)
+class TemporizadorCreate {
+  const TemporizadorCreate({
+    required this.pasoRecetaId,
+    required this.duracionSegundos,
+  });
+
+  factory TemporizadorCreate.fromJson(Map<String, dynamic> json) =>
+      _$TemporizadorCreateFromJson(json);
+
+  static const toJsonFactory = _$TemporizadorCreateToJson;
+  Map<String, dynamic> toJson() => _$TemporizadorCreateToJson(this);
+
+  @JsonKey(name: 'paso_receta_id')
+  final String pasoRecetaId;
+  @JsonKey(name: 'duracion_segundos')
+  final int duracionSegundos;
+  static const fromJsonFactory = _$TemporizadorCreateFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is TemporizadorCreate &&
+            (identical(other.pasoRecetaId, pasoRecetaId) ||
+                const DeepCollectionEquality()
+                    .equals(other.pasoRecetaId, pasoRecetaId)) &&
+            (identical(other.duracionSegundos, duracionSegundos) ||
+                const DeepCollectionEquality()
+                    .equals(other.duracionSegundos, duracionSegundos)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(pasoRecetaId) ^
+      const DeepCollectionEquality().hash(duracionSegundos) ^
+      runtimeType.hashCode;
+}
+
+extension $TemporizadorCreateExtension on TemporizadorCreate {
+  TemporizadorCreate copyWith({String? pasoRecetaId, int? duracionSegundos}) {
+    return TemporizadorCreate(
+        pasoRecetaId: pasoRecetaId ?? this.pasoRecetaId,
+        duracionSegundos: duracionSegundos ?? this.duracionSegundos);
+  }
+
+  TemporizadorCreate copyWithWrapped(
+      {Wrapped<String>? pasoRecetaId, Wrapped<int>? duracionSegundos}) {
+    return TemporizadorCreate(
+        pasoRecetaId:
+            (pasoRecetaId != null ? pasoRecetaId.value : this.pasoRecetaId),
+        duracionSegundos: (duracionSegundos != null
+            ? duracionSegundos.value
+            : this.duracionSegundos));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class TemporizadorResponse {
+  const TemporizadorResponse({
+    required this.id,
+    required this.pasoRecetaId,
+    required this.usuarioId,
+    required this.duracionSegundos,
+    required this.estado,
+    this.fechaInicio,
+    this.fechaConfirmacion,
+  });
+
+  factory TemporizadorResponse.fromJson(Map<String, dynamic> json) =>
+      _$TemporizadorResponseFromJson(json);
+
+  static const toJsonFactory = _$TemporizadorResponseToJson;
+  Map<String, dynamic> toJson() => _$TemporizadorResponseToJson(this);
+
+  @JsonKey(name: 'id')
+  final String id;
+  @JsonKey(name: 'paso_receta_id')
+  final String pasoRecetaId;
+  @JsonKey(name: 'usuario_id')
+  final String usuarioId;
+  @JsonKey(name: 'duracion_segundos')
+  final int duracionSegundos;
+  @JsonKey(name: 'estado')
+  final String estado;
+  @JsonKey(name: 'fecha_inicio')
+  final dynamic fechaInicio;
+  @JsonKey(name: 'fecha_confirmacion')
+  final dynamic fechaConfirmacion;
+  static const fromJsonFactory = _$TemporizadorResponseFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is TemporizadorResponse &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.pasoRecetaId, pasoRecetaId) ||
+                const DeepCollectionEquality()
+                    .equals(other.pasoRecetaId, pasoRecetaId)) &&
+            (identical(other.usuarioId, usuarioId) ||
+                const DeepCollectionEquality()
+                    .equals(other.usuarioId, usuarioId)) &&
+            (identical(other.duracionSegundos, duracionSegundos) ||
+                const DeepCollectionEquality()
+                    .equals(other.duracionSegundos, duracionSegundos)) &&
+            (identical(other.estado, estado) ||
+                const DeepCollectionEquality().equals(other.estado, estado)) &&
+            (identical(other.fechaInicio, fechaInicio) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaInicio, fechaInicio)) &&
+            (identical(other.fechaConfirmacion, fechaConfirmacion) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaConfirmacion, fechaConfirmacion)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(pasoRecetaId) ^
+      const DeepCollectionEquality().hash(usuarioId) ^
+      const DeepCollectionEquality().hash(duracionSegundos) ^
+      const DeepCollectionEquality().hash(estado) ^
+      const DeepCollectionEquality().hash(fechaInicio) ^
+      const DeepCollectionEquality().hash(fechaConfirmacion) ^
+      runtimeType.hashCode;
+}
+
+extension $TemporizadorResponseExtension on TemporizadorResponse {
+  TemporizadorResponse copyWith(
+      {String? id,
+      String? pasoRecetaId,
+      String? usuarioId,
+      int? duracionSegundos,
+      String? estado,
+      dynamic fechaInicio,
+      dynamic fechaConfirmacion}) {
+    return TemporizadorResponse(
+        id: id ?? this.id,
+        pasoRecetaId: pasoRecetaId ?? this.pasoRecetaId,
+        usuarioId: usuarioId ?? this.usuarioId,
+        duracionSegundos: duracionSegundos ?? this.duracionSegundos,
+        estado: estado ?? this.estado,
+        fechaInicio: fechaInicio ?? this.fechaInicio,
+        fechaConfirmacion: fechaConfirmacion ?? this.fechaConfirmacion);
+  }
+
+  TemporizadorResponse copyWithWrapped(
+      {Wrapped<String>? id,
+      Wrapped<String>? pasoRecetaId,
+      Wrapped<String>? usuarioId,
+      Wrapped<int>? duracionSegundos,
+      Wrapped<String>? estado,
+      Wrapped<dynamic>? fechaInicio,
+      Wrapped<dynamic>? fechaConfirmacion}) {
+    return TemporizadorResponse(
+        id: (id != null ? id.value : this.id),
+        pasoRecetaId:
+            (pasoRecetaId != null ? pasoRecetaId.value : this.pasoRecetaId),
+        usuarioId: (usuarioId != null ? usuarioId.value : this.usuarioId),
+        duracionSegundos: (duracionSegundos != null
+            ? duracionSegundos.value
+            : this.duracionSegundos),
+        estado: (estado != null ? estado.value : this.estado),
+        fechaInicio:
+            (fechaInicio != null ? fechaInicio.value : this.fechaInicio),
+        fechaConfirmacion: (fechaConfirmacion != null
+            ? fechaConfirmacion.value
+            : this.fechaConfirmacion));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
 class ToggleGastoRequest {
   const ToggleGastoRequest({
     required this.activo,
