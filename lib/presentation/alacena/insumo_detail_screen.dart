@@ -3,25 +3,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
+import '../../services/cache_service.dart';
 import 'alacena_screen.dart';
 import 'movimiento_stock_bottom_sheet.dart';
 
 final insumoByIdProvider = FutureProvider.autoDispose.family<InsumoResponse, String>((ref, id) async {
   final api = ref.watch(apiProvider);
-  final response = await api.apiV1InsumosIdGet(id: id);
-  if (!response.isSuccessful) {
-    throw Exception('Error al cargar insumo: ${response.error}');
+  try {
+    final response = await api.apiV1InsumosIdGet(id: id);
+    if (!response.isSuccessful) throw Exception('Error al cargar insumo: ${response.error}');
+    return response.body!;
+  } catch (_) {
+    final cached = CacheService.instance.getInsumoOffline(id);
+    if (cached != null) return cached;
+    rethrow;
   }
-  return response.body!;
 });
 
 final insumoMovementsProvider = FutureProvider.autoDispose.family<List<MovimientoResponse>, String>((ref, id) async {
   final api = ref.watch(apiProvider);
-  final response = await api.apiV1InsumosIdMovimientosGet(id: id);
-  if (!response.isSuccessful) {
-    throw Exception('Error al cargar movimientos: ${response.error}');
+  try {
+    final response = await api.apiV1InsumosIdMovimientosGet(id: id);
+    if (!response.isSuccessful) throw Exception('Error al cargar movimientos: ${response.error}');
+    final movimientos = response.body ?? [];
+    await CacheService.instance.cacheMovimientos(id, movimientos);
+    return movimientos;
+  } catch (_) {
+    final cached = CacheService.instance.getMovimientosOffline(id);
+    if (cached.isNotEmpty) return cached;
+    rethrow;
   }
-  return response.body ?? [];
 });
 
 class InsumoDetailScreen extends ConsumerWidget {

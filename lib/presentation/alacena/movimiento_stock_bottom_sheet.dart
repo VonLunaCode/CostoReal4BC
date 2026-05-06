@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/api_provider.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
 import '../../data/api_generated/openapi.enums.swagger.dart';
-import './alacena_screen.dart'; 
+import '../../services/sync_service.dart';
+import './alacena_screen.dart';
 import './insumo_detail_screen.dart';
 
 /// Función global para mostrar el bottom sheet de movimientos
@@ -135,12 +136,25 @@ class _MovimientoStockBottomSheetState
           ),
         );
       }
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
+      await SyncService.instance.agregarACola(
+        'api/v1/insumos/${widget.insumo.id}/movimientos',
+        {
+          'tipo': _isSelected[0] ? 'entrada' : 'salida',
+          'cantidad': _cantidadConvertida.toString(),
+          'motivo': _motivoSeleccionado.value,
+        },
+        'POST',
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Error inesperado: $e'),
-            backgroundColor: const Color(0xFFDC2626)),
+        const SnackBar(
+          content: Text('Sin conexión — se sincronizará al recuperar la red'),
+          backgroundColor: Color(0xFFF59E0B),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

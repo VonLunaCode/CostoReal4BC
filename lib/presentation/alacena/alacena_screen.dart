@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
 import './movimiento_stock_bottom_sheet.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
+import '../../services/cache_service.dart';
 import '../widgets/kitchy_bottom_nav.dart';
 import 'movimiento_stock_bottom_sheet.dart';
 
@@ -19,14 +20,20 @@ String formatCantidad(String raw, String unidad) {
 /// Provider que gestiona la lista de insumos desde el backend.
 final alacenaProvider = FutureProvider.autoDispose<List<InsumoResponse>>((ref) async {
   final api = ref.watch(apiProvider);
-  final response = await api.apiV1InsumosGet();
-  if (!response.isSuccessful) {
-    throw Exception('Error al cargar insumos: ${response.error}');
+  try {
+    final response = await api.apiV1InsumosGet();
+    if (!response.isSuccessful) {
+      throw Exception('Error al cargar insumos: ${response.error}');
+    }
+    final list = response.body ?? [];
+    list.sort((a, b) => a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase()));
+    await CacheService.instance.cacheInsumos(list);
+    return list;
+  } catch (_) {
+    final cached = CacheService.instance.getInsumosOffline();
+    if (cached.isNotEmpty) return cached;
+    rethrow;
   }
-  final list = response.body ?? [];
-  // Ordenamiento inicial: Alfabético por nombre
-  list.sort((a, b) => a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase()));
-  return list;
 });
 
 /// Provider para el filtro de búsqueda.
