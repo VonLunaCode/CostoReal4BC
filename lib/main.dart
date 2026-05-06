@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'theme/kitchy_colors.dart';
 import 'theme/kitchy_typography.dart';
 import 'core/router.dart';
 import 'services/notification_service.dart';
+import 'services/sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inicializar el servicio de notificaciones
+  await Hive.initFlutter();
+  await Hive.openBox('pedidos');
+  await Hive.openBox('recetas');
+  await Hive.openBox('insumos');
+  await Hive.openBox('movimientos');
+  await Hive.openBox('offline_queue');
+
   await NotificationService.instance.initialize();
 
   // Inicializar formatos de fecha para español
@@ -29,6 +37,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.read(syncServiceProvider); // inicializar listener de conectividad
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(

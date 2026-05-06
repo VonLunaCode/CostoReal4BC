@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
 import '../../data/api_generated/openapi.enums.swagger.dart';
+import '../../services/sync_service.dart';
 import 'alacena_screen.dart';
 
 class InsumoFormScreen extends ConsumerStatefulWidget {
@@ -130,12 +131,41 @@ class _InsumoFormScreenState extends ConsumerState<InsumoFormScreen> {
           throw Exception(response.error ?? 'Error al crear');
         }
       }
-    } catch (e) {
-      if (mounted) {
+    } catch (_) {
+      if (!mounted) return;
+      {
+        if (_isEditing) {
+          await SyncService.instance.agregarACola(
+            'api/v1/insumos/${widget.insumoExistente!.id}',
+            {
+              'nombre': _nombreController.text,
+              'unidad': _unidadSeleccionada.value,
+              'precio_compra': _precioController.text,
+              'cantidad_comprada': _cantidadController.text,
+              'alerta_minimo': _alertaController.text,
+            },
+            'PUT',
+          );
+        } else {
+          await SyncService.instance.agregarACola(
+            'api/v1/insumos',
+            {
+              'nombre': _nombreController.text,
+              'unidad': _unidadSeleccionada.value,
+              'precio_compra': _precioController.text,
+              'cantidad_comprada': _cantidadController.text,
+              'alerta_minimo': _alertaController.text,
+            },
+            'POST',
+          );
+        }
+        if (!mounted) return;
+        context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception:', '')),
-            backgroundColor: const Color(0xFFDC2626),
+          const SnackBar(
+            content: Text('Sin conexión — se sincronizará al recuperar la red'),
+            backgroundColor: Color(0xFFF59E0B),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
