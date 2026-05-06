@@ -61,6 +61,7 @@ class PerfilScreen extends ConsumerWidget {
               onTap: () {},
             ),
             const SizedBox(height: 48),
+            const SizedBox(height: 16),
             _buildLogoutButton(context, ref),
             const SizedBox(height: 100), // Espacio para el nav bar
           ],

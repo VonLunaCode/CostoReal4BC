@@ -433,7 +433,7 @@ abstract class Openapi extends ChopperService {
   ///@param pedido_id
   Future<chopper.Response<PedidoResponse>> apiV1PedidosPedidoIdPut({
     required String? pedidoId,
-    required dynamic body,
+    required PedidoUpdate? body,
   }) {
     generatedMapping.putIfAbsent(
         PedidoResponse, () => PedidoResponse.fromJsonFactory);
@@ -449,7 +449,7 @@ abstract class Openapi extends ChopperService {
   )
   Future<chopper.Response<PedidoResponse>> _apiV1PedidosPedidoIdPut({
     @Path('pedido_id') required String? pedidoId,
-    @Body() required dynamic body,
+    @Body() required PedidoUpdate? body,
   });
 
   ///Cancelar Pedido
@@ -493,6 +493,75 @@ abstract class Openapi extends ChopperService {
     @Path('pedido_id') required String? pedidoId,
     @Query('nuevo_estado') required String? nuevoEstado,
   });
+
+  ///Listar Temporizadores
+  Future<chopper.Response<List<TemporizadorResponse>>>
+      apiV1TemporizadoresGet() {
+    generatedMapping.putIfAbsent(
+        TemporizadorResponse, () => TemporizadorResponse.fromJsonFactory);
+
+    return _apiV1TemporizadoresGet();
+  }
+
+  ///Listar Temporizadores
+  @Get(path: '/api/v1/temporizadores/')
+  Future<chopper.Response<List<TemporizadorResponse>>>
+      _apiV1TemporizadoresGet();
+
+  ///Iniciar Temporizador
+  Future<chopper.Response<TemporizadorResponse>> apiV1TemporizadoresPost(
+      {required TemporizadorCreate? body}) {
+    generatedMapping.putIfAbsent(
+        TemporizadorResponse, () => TemporizadorResponse.fromJsonFactory);
+
+    return _apiV1TemporizadoresPost(body: body);
+  }
+
+  ///Iniciar Temporizador
+  @Post(
+    path: '/api/v1/temporizadores/',
+    optionalBody: true,
+  )
+  Future<chopper.Response<TemporizadorResponse>> _apiV1TemporizadoresPost(
+      {@Body() required TemporizadorCreate? body});
+
+  ///Cancelar Temporizador
+  ///@param id
+  Future<chopper.Response<TemporizadorResponse>>
+      apiV1TemporizadoresIdCancelarPatch({required String? id}) {
+    generatedMapping.putIfAbsent(
+        TemporizadorResponse, () => TemporizadorResponse.fromJsonFactory);
+
+    return _apiV1TemporizadoresIdCancelarPatch(id: id);
+  }
+
+  ///Cancelar Temporizador
+  ///@param id
+  @Patch(
+    path: '/api/v1/temporizadores/{id}/cancelar',
+    optionalBody: true,
+  )
+  Future<chopper.Response<TemporizadorResponse>>
+      _apiV1TemporizadoresIdCancelarPatch({@Path('id') required String? id});
+
+  ///Confirmar Alarma
+  ///@param id
+  Future<chopper.Response<TemporizadorResponse>>
+      apiV1TemporizadoresIdConfirmarPatch({required String? id}) {
+    generatedMapping.putIfAbsent(
+        TemporizadorResponse, () => TemporizadorResponse.fromJsonFactory);
+
+    return _apiV1TemporizadoresIdConfirmarPatch(id: id);
+  }
+
+  ///Confirmar Alarma
+  ///@param id
+  @Patch(
+    path: '/api/v1/temporizadores/{id}/confirmar',
+    optionalBody: true,
+  )
+  Future<chopper.Response<TemporizadorResponse>>
+      _apiV1TemporizadoresIdConfirmarPatch({@Path('id') required String? id});
 
   ///Health Check
   Future<chopper.Response> get() {

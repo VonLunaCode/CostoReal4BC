@@ -5,10 +5,14 @@ import 'package:intl/intl.dart';
 import 'theme/kitchy_colors.dart';
 import 'theme/kitchy_typography.dart';
 import 'core/router.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Inicializar el servicio de notificaciones
+  await NotificationService.instance.initialize();
+
   // Inicializar formatos de fecha para español
   await initializeDateFormatting('es_ES', null);
   Intl.defaultLocale = 'es_ES';

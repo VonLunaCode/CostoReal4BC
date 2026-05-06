@@ -15,6 +15,7 @@ class RecetaFichaScreen extends ConsumerStatefulWidget {
 class _RecetaFichaScreenState extends ConsumerState<RecetaFichaScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  RecetaResponse? _receta;
 
   @override
   void initState() {
@@ -52,22 +53,52 @@ class _RecetaFichaScreenState extends ConsumerState<RecetaFichaScreen>
             ],
           ),
         ),
-        data: (receta) => _buildContent(receta),
+        data: (receta) {
+          _receta = receta;
+          return _buildContent(receta);
+        },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/recetas/${widget.id}/simulador'),
-        backgroundColor: const Color(0xFF7A613E),
-        icon: const Icon(Icons.calculate_outlined, color: Colors.white),
-        label: const Text(
-          'SIMULAR RENTABILIDAD',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-            letterSpacing: 1,
-          ),
-        ),
-      ),
+      floatingActionButton: _receta != null
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton.extended(
+                  heroTag: 'modo_cocina',
+                  onPressed: () =>
+                      context.push('/cocina/modo', extra: _receta),
+                  backgroundColor: const Color(0xFF121827),
+                  icon: const Icon(Icons.restaurant, color: Colors.white),
+                  label: const Text(
+                    'MODO COCINA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton.extended(
+                  heroTag: 'simulador',
+                  onPressed: () =>
+                      context.push('/recetas/${widget.id}/simulador'),
+                  backgroundColor: const Color(0xFF7A613E),
+                  icon: const Icon(Icons.calculate_outlined,
+                      color: Colors.white),
+                  label: const Text(
+                    'SIMULAR RENTABILIDAD',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : null,
     );
   }
 
