@@ -100,9 +100,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: const [
                         Icon(Icons.error_outline, color: Color(0xFFC53030), size: 16),
                         SizedBox(width: 8),
-                        Text(
-                          'Correo o contraseña incorrectos',
-                          style: TextStyle(color: Color(0xFFC53030), fontSize: 12, fontWeight: FontWeight.bold),
+                        Flexible(
+                          child: Text(
+                            'Correo o contraseña incorrectos',
+                            style: TextStyle(color: Color(0xFFC53030), fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
@@ -179,15 +181,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        TextButton(
-                          onPressed: () {}, // Forgot password action
-                          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                          child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Color(0xFF807667), fontSize: 10, fontWeight: FontWeight.bold)),
+                        Flexible(
+                          child: TextButton(
+                            onPressed: () {}, // Forgot password action
+                            style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                            child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Color(0xFF807667), fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
                         ),
-                        TextButton(
-                          onPressed: () => context.push('/register'),
-                          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                          child: const Text('Crear cuenta', style: TextStyle(color: Color(0xFF2C2623), fontSize: 10, fontWeight: FontWeight.bold)),
+                        Flexible(
+                          child: TextButton(
+                            onPressed: () => context.push('/register'),
+                            style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                            child: const Text('Crear cuenta', style: TextStyle(color: Color(0xFF2C2623), fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
                         ),
                       ],
                     ),
