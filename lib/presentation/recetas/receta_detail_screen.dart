@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
 import '../../data/api_generated/openapi.enums.swagger.dart' as enums;
 import '../../data/api_provider.dart';
+import '../../data/user_config_service.dart';
 import './recetas_providers.dart';
 import './widgets/gastos_ocultos_widget.dart';
 import './widgets/margen_slider_widget.dart';
@@ -24,33 +25,47 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
   double _empaqueValor = 0.0;
   bool _gasLuzActivo = false;
   double _gasLuzPorcentaje = 0.0;
+  bool _gasLuzEsPorcentaje = true;
   bool _isSaving = false;
   bool _isInitialized = false;
 
-  void _initializeState(RecetaResponse receta) {
+  void _initializeState(RecetaResponse receta, UserConfigData? userConfig) {
     if (_isInitialized) return;
-    
+
     _margen = double.tryParse(receta.margenPct.toString()) ?? 30.0;
-    
-    for (var gasto in receta.gastosOcultos) {
-      if (gasto.tipo == enums.GastoOcultoResponseTipo.empaque) {
-        _empaqueActivo = gasto.activo ?? false;
-        _empaqueValor = double.tryParse(gasto.valor) ?? 0.0;
-      } else if (gasto.tipo == enums.GastoOcultoResponseTipo.gasLuz) {
-        _gasLuzActivo = gasto.activo ?? false;
-        _gasLuzPorcentaje = double.tryParse(gasto.valor) ?? 0.0;
+
+    final hasActiveGastos = receta.gastosOcultos.any((g) => g.activo ?? false);
+
+    if (receta.gastosOcultos.isNotEmpty && hasActiveGastos) {
+      // Receta ya configurada — usar sus propios valores
+      for (var gasto in receta.gastosOcultos) {
+        if (gasto.tipo == enums.GastoOcultoResponseTipo.empaque) {
+          _empaqueActivo = gasto.activo ?? false;
+          _empaqueValor = double.tryParse(gasto.valor) ?? 0.0;
+        } else if (gasto.tipo == enums.GastoOcultoResponseTipo.gasLuz) {
+          _gasLuzActivo = gasto.activo ?? false;
+          _gasLuzPorcentaje = double.tryParse(gasto.valor) ?? 0.0;
+          _gasLuzEsPorcentaje = gasto.esPorcentaje ?? true;
+        }
       }
+      _isInitialized = true;
+    } else if (userConfig != null) {
+      // Receta nueva o sin gastos activos — pre-llenar con defaults del usuario
+      _empaqueValor = userConfig.empaqueDefault;
+      _gasLuzPorcentaje = userConfig.desgasteDefault;
+      _gasLuzEsPorcentaje = true;
+      _isInitialized = true;
     }
-    
-    _isInitialized = true;
+    // Si userConfig aún no cargó, _isInitialized queda false y se reintenta
   }
 
   @override
   Widget build(BuildContext context) {
     final recetaAsync = ref.watch(recetaDetailProvider(widget.id));
-    
+    final userConfig = ref.watch(userConfigProvider).valueOrNull;
+
     // Inicializar estado una vez que la receta cargue
-    recetaAsync.whenData((receta) => _initializeState(receta));
+    recetaAsync.whenData((receta) => _initializeState(receta, userConfig));
     
     final formatter = NumberFormat.currency(locale: 'es_MX', symbol: '\$');
 
@@ -76,7 +91,11 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
           final costoLocal = _calcularCostoInsumos(receta);
           
           final costoEmpaqueTotal = _empaqueActivo ? _empaqueValor : 0.0;
-          final costoEnergiaTotal = _gasLuzActivo ? (costoLocal * _gasLuzPorcentaje / 100) : 0.0;
+          final costoEnergiaTotal = _gasLuzActivo
+              ? (_gasLuzEsPorcentaje
+                  ? (costoLocal * _gasLuzPorcentaje / 100)
+                  : _gasLuzPorcentaje)
+              : 0.0;
           
           final costoSubtotalPorUnidad = receta.porciones > 0 ? costoLocal / receta.porciones : 0.0;
           // Asumir que empaque y energía son totales
@@ -216,12 +235,14 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
                             initialEmpaqueValor: _empaqueValor,
                             initialGasLuzActivo: _gasLuzActivo,
                             initialGasLuzPorcentaje: _gasLuzPorcentaje,
-                            onGastosChanged: (emp, empVal, gas, gasPct) {
+                            initialGasLuzEsPorcentaje: _gasLuzEsPorcentaje,
+                            onGastosChanged: (emp, empVal, gas, gasVal, gasEsPct) {
                               setState(() {
                                 _empaqueActivo = emp;
                                 _empaqueValor = empVal;
                                 _gasLuzActivo = gas;
-                                _gasLuzPorcentaje = gasPct;
+                                _gasLuzPorcentaje = gasVal;
+                                _gasLuzEsPorcentaje = gasEsPct;
                               });
                             },
                           ),
@@ -315,22 +336,38 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
     try {
       final api = ref.read(apiProvider);
       
-      // Orquestar las 3 peticiones en paralelo
-      await Future.wait([
-        // 1. Actualizar el Margen de la receta
+      final responses = await Future.wait([
+        // 1. Actualizar el Margen de la receta (mandamos la receta completa)
         api.apiV1RecetasIdPut(
           id: receta.id,
           body: RecetaUpdate(
-            margenPct: _margen.toString(),
+            nombre: receta.nombre,
+            porciones: receta.porciones,
+            margenPct: _margen.toStringAsFixed(2),
+            ingredientes: receta.ingredientes
+                .map((i) => IngredienteCreate(
+                      insumoId: i.insumo.id,
+                      cantidadUsada: i.cantidadUsada.toString(),
+                      unidad: i.unidad,
+                    ))
+                .toList(),
+            pasos: receta.pasos
+                .map((p) => PasoCreate(
+                      orden: p.orden,
+                      descripcion: p.descripcion,
+                      duracionSegundos: p.duracionSegundos,
+                      esCritico: p.esCritico ?? false,
+                    ))
+                .toList(),
           ),
         ),
-        
+
         // 2. Actualizar Gasto de Empaque
         api.apiV1RecetasIdGastosOcultosPost(
           id: receta.id,
           body: GastoOcultoCreate(
             tipo: enums.GastoOcultoCreateTipo.empaque,
-            valor: _empaqueValor.toString(),
+            valor: _empaqueValor.toStringAsFixed(2),
             esPorcentaje: false,
             activo: _empaqueActivo,
           ),
@@ -341,12 +378,17 @@ class _RecetaDetailScreenState extends ConsumerState<RecetaDetailScreen> {
           id: receta.id,
           body: GastoOcultoCreate(
             tipo: enums.GastoOcultoCreateTipo.gasLuz,
-            valor: _gasLuzPorcentaje.toString(),
-            esPorcentaje: true,
+            valor: _gasLuzPorcentaje.toStringAsFixed(2),
+            esPorcentaje: _gasLuzEsPorcentaje,
             activo: _gasLuzActivo,
           ),
         ),
       ]);
+
+      final failed = responses.where((r) => !r.isSuccessful).toList();
+      if (failed.isNotEmpty) {
+        throw Exception('Error del servidor: ${failed.first.error}');
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -6,6 +6,8 @@ import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/login_screen.dart';
 import '../presentation/screens/register_screen.dart';
 import '../presentation/screens/perfil_screen.dart';
+import '../presentation/puntos_entrega/puntos_entrega_screen.dart';
+import '../presentation/puntos_entrega/punto_entrega_form_screen.dart';
 
 import '../presentation/alacena/alacena_screen.dart';
 import '../presentation/alacena/insumo_form_screen.dart';
@@ -20,6 +22,8 @@ import '../presentation/pedidos/pedido_detail_screen.dart';
 import '../presentation/cocina/cronometro_widget.dart';
 import '../presentation/cocina/modo_cocina_screen.dart';
 import '../presentation/cocina/confirmar_alarma_screen.dart';
+import '../presentation/cocina/cocina_selector_screen.dart';
+import '../presentation/configuracion/configuracion_screen.dart';
 import '../data/api_generated/openapi.models.swagger.dart';
 import 'app_keys.dart';
 
@@ -129,7 +133,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: 'cocina',
-            redirect: (_, __) => null,
+            builder: (context, state) => const CocinaSelectorScreen(),
             routes: [
               GoRoute(
                 path: 'modo',
@@ -155,6 +159,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/perfil',
         builder: (context, state) => const PerfilScreen(),
+        routes: [
+          GoRoute(
+            path: 'puntos-entrega',
+            builder: (context, state) => const PuntosEntregaScreen(),
+            routes: [
+              GoRoute(
+                path: 'new',
+                builder: (context, state) => const PuntoEntregaFormScreen(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (context, state) {
+                  final punto = state.extra as PuntoEntregaRead?;
+                  return PuntoEntregaFormScreen(punto: punto);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/configuracion',
+        builder: (context, state) => const ConfiguracionScreen(),
       ),
       GoRoute(
         path: '/login',

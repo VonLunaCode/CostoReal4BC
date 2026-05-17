@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../auth_provider.dart';
 import '../widgets/kitchy_bottom_nav.dart';
 
@@ -52,7 +53,13 @@ class PerfilScreen extends ConsumerWidget {
             _buildOpcion(
               icon: Icons.settings_outlined,
               title: 'Configuración',
-              onTap: () {},
+              onTap: () => context.push('/configuracion'),
+            ),
+            const SizedBox(height: 16),
+            _buildOpcion(
+              icon: Icons.location_on_outlined,
+              title: 'Puntos de Entrega',
+              onTap: () => context.push('/perfil/puntos-entrega'),
             ),
             const SizedBox(height: 16),
             _buildOpcion(
