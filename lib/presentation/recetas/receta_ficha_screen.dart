@@ -315,9 +315,11 @@ class _TabPreparacion extends StatelessWidget {
       itemBuilder: (context, index) {
         final paso = sorted[index];
         final durSeg = paso.duracionSegundos;
-        final minutos = (durSeg != null && durSeg != 0)
-            ? (durSeg is int ? durSeg ~/ 60 : (durSeg as num).toInt() ~/ 60)
+        final durTotal = (durSeg != null && durSeg != 0)
+            ? durSeg is int ? durSeg : (durSeg as num).toInt()
             : null;
+        final minutos = durTotal != null ? durTotal ~/ 60 : null;
+        final segundos = durTotal != null ? durTotal % 60 : null;
         final esCritico = paso.esCritico ?? false;
 
         return Padding(
@@ -360,7 +362,9 @@ class _TabPreparacion extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              '$minutos MIN',
+                              segundos != null && segundos > 0
+                                  ? '$minutos MIN $segundos SEG'
+                                  : '$minutos MIN',
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,

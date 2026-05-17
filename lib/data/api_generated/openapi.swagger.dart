@@ -413,6 +413,29 @@ abstract class Openapi extends ChopperService {
     @Query('offset') int? offset,
   });
 
+  ///Check Colision
+  ///@param fecha_entrega
+  ///@param exclude_id
+  Future<chopper.Response<ColisionHoraResponse>> apiV1PedidosCheckColisionGet({
+    required DateTime? fechaEntrega,
+    String? excludeId,
+  }) {
+    generatedMapping.putIfAbsent(
+        ColisionHoraResponse, () => ColisionHoraResponse.fromJsonFactory);
+
+    return _apiV1PedidosCheckColisionGet(
+        fechaEntrega: fechaEntrega, excludeId: excludeId);
+  }
+
+  ///Check Colision
+  ///@param fecha_entrega
+  ///@param exclude_id
+  @Get(path: '/api/v1/pedidos/check-colision')
+  Future<chopper.Response<ColisionHoraResponse>> _apiV1PedidosCheckColisionGet({
+    @Query('fecha_entrega') required DateTime? fechaEntrega,
+    @Query('exclude_id') String? excludeId,
+  });
+
   ///Obtener Pedido
   ///@param pedido_id
   Future<chopper.Response<PedidoResponse>> apiV1PedidosPedidoIdGet(
@@ -562,6 +585,134 @@ abstract class Openapi extends ChopperService {
   )
   Future<chopper.Response<TemporizadorResponse>>
       _apiV1TemporizadoresIdConfirmarPatch({@Path('id') required String? id});
+
+  ///Get Notificaciones
+  ///@param enviada
+  Future<chopper.Response<List<NotificacionRead>>> apiV1NotificacionesGet(
+      {bool? enviada}) {
+    generatedMapping.putIfAbsent(
+        NotificacionRead, () => NotificacionRead.fromJsonFactory);
+
+    return _apiV1NotificacionesGet(enviada: enviada);
+  }
+
+  ///Get Notificaciones
+  ///@param enviada
+  @Get(path: '/api/v1/notificaciones/')
+  Future<chopper.Response<List<NotificacionRead>>> _apiV1NotificacionesGet(
+      {@Query('enviada') bool? enviada});
+
+  ///Listar Puntos Entrega
+  Future<chopper.Response<List<PuntoEntregaRead>>> apiV1PuntosEntregaGet() {
+    generatedMapping.putIfAbsent(
+        PuntoEntregaRead, () => PuntoEntregaRead.fromJsonFactory);
+
+    return _apiV1PuntosEntregaGet();
+  }
+
+  ///Listar Puntos Entrega
+  @Get(path: '/api/v1/puntos-entrega/')
+  Future<chopper.Response<List<PuntoEntregaRead>>> _apiV1PuntosEntregaGet();
+
+  ///Crear Punto Entrega
+  Future<chopper.Response<PuntoEntregaRead>> apiV1PuntosEntregaPost(
+      {required PuntoEntregaCreate? body}) {
+    generatedMapping.putIfAbsent(
+        PuntoEntregaRead, () => PuntoEntregaRead.fromJsonFactory);
+
+    return _apiV1PuntosEntregaPost(body: body);
+  }
+
+  ///Crear Punto Entrega
+  @Post(
+    path: '/api/v1/puntos-entrega/',
+    optionalBody: true,
+  )
+  Future<chopper.Response<PuntoEntregaRead>> _apiV1PuntosEntregaPost(
+      {@Body() required PuntoEntregaCreate? body});
+
+  ///Obtener Punto Entrega
+  ///@param punto_entrega_id
+  Future<chopper.Response<PuntoEntregaRead>>
+      apiV1PuntosEntregaPuntoEntregaIdGet({required String? puntoEntregaId}) {
+    generatedMapping.putIfAbsent(
+        PuntoEntregaRead, () => PuntoEntregaRead.fromJsonFactory);
+
+    return _apiV1PuntosEntregaPuntoEntregaIdGet(puntoEntregaId: puntoEntregaId);
+  }
+
+  ///Obtener Punto Entrega
+  ///@param punto_entrega_id
+  @Get(path: '/api/v1/puntos-entrega/{punto_entrega_id}')
+  Future<chopper.Response<PuntoEntregaRead>>
+      _apiV1PuntosEntregaPuntoEntregaIdGet(
+          {@Path('punto_entrega_id') required String? puntoEntregaId});
+
+  ///Actualizar Punto Entrega
+  ///@param punto_entrega_id
+  Future<chopper.Response<PuntoEntregaRead>>
+      apiV1PuntosEntregaPuntoEntregaIdPut({
+    required String? puntoEntregaId,
+    required PuntoEntregaUpdate? body,
+  }) {
+    generatedMapping.putIfAbsent(
+        PuntoEntregaRead, () => PuntoEntregaRead.fromJsonFactory);
+
+    return _apiV1PuntosEntregaPuntoEntregaIdPut(
+        puntoEntregaId: puntoEntregaId, body: body);
+  }
+
+  ///Actualizar Punto Entrega
+  ///@param punto_entrega_id
+  @Put(
+    path: '/api/v1/puntos-entrega/{punto_entrega_id}',
+    optionalBody: true,
+  )
+  Future<chopper.Response<PuntoEntregaRead>>
+      _apiV1PuntosEntregaPuntoEntregaIdPut({
+    @Path('punto_entrega_id') required String? puntoEntregaId,
+    @Body() required PuntoEntregaUpdate? body,
+  });
+
+  ///Parchear Punto Entrega
+  ///@param punto_entrega_id
+  Future<chopper.Response<PuntoEntregaRead>>
+      apiV1PuntosEntregaPuntoEntregaIdPatch({
+    required String? puntoEntregaId,
+    required PuntoEntregaPatch? body,
+  }) {
+    generatedMapping.putIfAbsent(
+        PuntoEntregaRead, () => PuntoEntregaRead.fromJsonFactory);
+
+    return _apiV1PuntosEntregaPuntoEntregaIdPatch(
+        puntoEntregaId: puntoEntregaId, body: body);
+  }
+
+  ///Parchear Punto Entrega
+  ///@param punto_entrega_id
+  @Patch(
+    path: '/api/v1/puntos-entrega/{punto_entrega_id}',
+    optionalBody: true,
+  )
+  Future<chopper.Response<PuntoEntregaRead>>
+      _apiV1PuntosEntregaPuntoEntregaIdPatch({
+    @Path('punto_entrega_id') required String? puntoEntregaId,
+    @Body() required PuntoEntregaPatch? body,
+  });
+
+  ///Eliminar Punto Entrega
+  ///@param punto_entrega_id
+  Future<chopper.Response> apiV1PuntosEntregaPuntoEntregaIdDelete(
+      {required String? puntoEntregaId}) {
+    return _apiV1PuntosEntregaPuntoEntregaIdDelete(
+        puntoEntregaId: puntoEntregaId);
+  }
+
+  ///Eliminar Punto Entrega
+  ///@param punto_entrega_id
+  @Delete(path: '/api/v1/puntos-entrega/{punto_entrega_id}')
+  Future<chopper.Response> _apiV1PuntosEntregaPuntoEntregaIdDelete(
+      {@Path('punto_entrega_id') required String? puntoEntregaId});
 
   ///Health Check
   Future<chopper.Response> get() {

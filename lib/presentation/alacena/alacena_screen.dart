@@ -287,10 +287,28 @@ class _InsumoCard extends ConsumerWidget {
             return true;
           } else {
             if (context.mounted) {
+              final errorBody = response.error?.toString() ?? '';
+              final bool vinculado = errorBody.contains('receta') ||
+                  errorBody.contains('ingrediente') ||
+                  errorBody.contains('utilizado') ||
+                  errorBody.contains('asociado');
+              final mensaje = vinculado
+                  ? 'No se puede eliminar "${insumo.nombre}" porque está vinculado a una o más recetas.'
+                  : 'No se pudo eliminar el insumo. Intentá de nuevo.';
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Error al eliminar el insumo'),
-                  backgroundColor: Color(0xFFDC2626),
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(mensaje)),
+                    ],
+                  ),
+                  backgroundColor: const Color(0xFFDC2626),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.all(16),
+                  duration: const Duration(seconds: 4),
                 ),
               );
             }
@@ -300,8 +318,18 @@ class _InsumoCard extends ConsumerWidget {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: $e'),
+                content: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('No se pudo eliminar el insumo. Intentá de nuevo.')),
+                  ],
+                ),
                 backgroundColor: const Color(0xFFDC2626),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                margin: const EdgeInsets.all(16),
+                duration: const Duration(seconds: 4),
               ),
             );
           }

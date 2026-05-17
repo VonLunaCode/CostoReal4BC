@@ -29,6 +29,24 @@ Map<String, dynamic> _$BodyLoginForAccessTokenApiV1AuthLoginPostToJson(
       'client_secret': instance.clientSecret,
     };
 
+ColisionHoraResponse _$ColisionHoraResponseFromJson(
+        Map<String, dynamic> json) =>
+    ColisionHoraResponse(
+      hayColision: json['hay_colision'] as bool,
+      cantidad: (json['cantidad'] as num).toInt(),
+      horaInicio: json['hora_inicio'] as String,
+      horaFin: json['hora_fin'] as String,
+    );
+
+Map<String, dynamic> _$ColisionHoraResponseToJson(
+        ColisionHoraResponse instance) =>
+    <String, dynamic>{
+      'hay_colision': instance.hayColision,
+      'cantidad': instance.cantidad,
+      'hora_inicio': instance.horaInicio,
+      'hora_fin': instance.horaFin,
+    };
+
 GastoOcultoCreate _$GastoOcultoCreateFromJson(Map<String, dynamic> json) =>
     GastoOcultoCreate(
       tipo: gastoOcultoCreateTipoFromJson(json['tipo']),
@@ -244,9 +262,33 @@ Map<String, dynamic> _$MovimientoResponseToJson(MovimientoResponse instance) =>
       'fecha': instance.fecha.toIso8601String(),
     };
 
+NotificacionRead _$NotificacionReadFromJson(Map<String, dynamic> json) =>
+    NotificacionRead(
+      tipo: json['tipo'] as String,
+      fechaProgramada: DateTime.parse(json['fecha_programada'] as String),
+      pedidoId: json['pedido_id'],
+      insumoId: json['insumo_id'],
+      id: json['id'] as String,
+      enviada: json['enviada'] as bool,
+      fechaEnvio: json['fecha_envio'],
+    );
+
+Map<String, dynamic> _$NotificacionReadToJson(NotificacionRead instance) =>
+    <String, dynamic>{
+      'tipo': instance.tipo,
+      'fecha_programada': instance.fechaProgramada.toIso8601String(),
+      'pedido_id': instance.pedidoId,
+      'insumo_id': instance.insumoId,
+      'id': instance.id,
+      'enviada': instance.enviada,
+      'fecha_envio': instance.fechaEnvio,
+    };
+
 PasoCreate _$PasoCreateFromJson(Map<String, dynamic> json) => PasoCreate(
       orden: (json['orden'] as num).toInt(),
       descripcion: json['descripcion'] as String,
+      duracion: json['duracion'],
+      unidad: json['unidad'],
       duracionSegundos: json['duracion_segundos'],
       esCritico: json['es_critico'] as bool? ?? false,
     );
@@ -255,6 +297,8 @@ Map<String, dynamic> _$PasoCreateToJson(PasoCreate instance) =>
     <String, dynamic>{
       'orden': instance.orden,
       'descripcion': instance.descripcion,
+      'duracion': instance.duracion,
+      'unidad': instance.unidad,
       'duracion_segundos': instance.duracionSegundos,
       'es_critico': instance.esCritico,
     };
@@ -262,6 +306,8 @@ Map<String, dynamic> _$PasoCreateToJson(PasoCreate instance) =>
 PasoResponse _$PasoResponseFromJson(Map<String, dynamic> json) => PasoResponse(
       orden: (json['orden'] as num).toInt(),
       descripcion: json['descripcion'] as String,
+      duracion: json['duracion'],
+      unidad: json['unidad'],
       duracionSegundos: json['duracion_segundos'],
       esCritico: json['es_critico'] as bool? ?? false,
       id: json['id'] as String,
@@ -271,6 +317,8 @@ Map<String, dynamic> _$PasoResponseToJson(PasoResponse instance) =>
     <String, dynamic>{
       'orden': instance.orden,
       'descripcion': instance.descripcion,
+      'duracion': instance.duracion,
+      'unidad': instance.unidad,
       'duracion_segundos': instance.duracionSegundos,
       'es_critico': instance.esCritico,
       'id': instance.id,
@@ -281,6 +329,7 @@ PedidoCreate _$PedidoCreateFromJson(Map<String, dynamic> json) => PedidoCreate(
       clienteWhatsapp: json['cliente_whatsapp'],
       fechaEntrega: DateTime.parse(json['fecha_entrega'] as String),
       puntoEntrega: json['punto_entrega'],
+      puntoEntregaId: json['punto_entrega_id'],
       notas: json['notas'],
       lineas: (json['lineas'] as List<dynamic>?)
               ?.map(
@@ -295,6 +344,7 @@ Map<String, dynamic> _$PedidoCreateToJson(PedidoCreate instance) =>
       'cliente_whatsapp': instance.clienteWhatsapp,
       'fecha_entrega': instance.fechaEntrega.toIso8601String(),
       'punto_entrega': instance.puntoEntrega,
+      'punto_entrega_id': instance.puntoEntregaId,
       'notas': instance.notas,
       'lineas': instance.lineas.map((e) => e.toJson()).toList(),
     };
@@ -315,6 +365,8 @@ PedidoResponse _$PedidoResponseFromJson(Map<String, dynamic> json) =>
               .toList() ??
           [],
       whatsappUrl: json['whatsapp_url'],
+      puntoEntregaDisplay: json['punto_entrega_display'],
+      puntoEntregaDireccion: json['punto_entrega_direccion'],
     );
 
 Map<String, dynamic> _$PedidoResponseToJson(PedidoResponse instance) =>
@@ -329,6 +381,8 @@ Map<String, dynamic> _$PedidoResponseToJson(PedidoResponse instance) =>
       'notas': instance.notas,
       'lineas': instance.lineas.map((e) => e.toJson()).toList(),
       'whatsapp_url': instance.whatsappUrl,
+      'punto_entrega_display': instance.puntoEntregaDisplay,
+      'punto_entrega_direccion': instance.puntoEntregaDireccion,
     };
 
 PedidoUpdate _$PedidoUpdateFromJson(Map<String, dynamic> json) => PedidoUpdate(
@@ -336,6 +390,7 @@ PedidoUpdate _$PedidoUpdateFromJson(Map<String, dynamic> json) => PedidoUpdate(
       clienteWhatsapp: json['cliente_whatsapp'],
       fechaEntrega: json['fecha_entrega'],
       puntoEntrega: json['punto_entrega'],
+      puntoEntregaId: json['punto_entrega_id'],
       notas: json['notas'],
       lineas: json['lineas'],
     );
@@ -346,8 +401,73 @@ Map<String, dynamic> _$PedidoUpdateToJson(PedidoUpdate instance) =>
       'cliente_whatsapp': instance.clienteWhatsapp,
       'fecha_entrega': instance.fechaEntrega,
       'punto_entrega': instance.puntoEntrega,
+      'punto_entrega_id': instance.puntoEntregaId,
       'notas': instance.notas,
       'lineas': instance.lineas,
+    };
+
+PuntoEntregaCreate _$PuntoEntregaCreateFromJson(Map<String, dynamic> json) =>
+    PuntoEntregaCreate(
+      nombre: json['nombre'] as String,
+      descripcion: json['descripcion'],
+      direccion: json['direccion'],
+    );
+
+Map<String, dynamic> _$PuntoEntregaCreateToJson(PuntoEntregaCreate instance) =>
+    <String, dynamic>{
+      'nombre': instance.nombre,
+      'descripcion': instance.descripcion,
+      'direccion': instance.direccion,
+    };
+
+PuntoEntregaPatch _$PuntoEntregaPatchFromJson(Map<String, dynamic> json) =>
+    PuntoEntregaPatch(
+      nombre: json['nombre'],
+      descripcion: json['descripcion'],
+      direccion: json['direccion'],
+    );
+
+Map<String, dynamic> _$PuntoEntregaPatchToJson(PuntoEntregaPatch instance) =>
+    <String, dynamic>{
+      'nombre': instance.nombre,
+      'descripcion': instance.descripcion,
+      'direccion': instance.direccion,
+    };
+
+PuntoEntregaRead _$PuntoEntregaReadFromJson(Map<String, dynamic> json) =>
+    PuntoEntregaRead(
+      id: json['id'] as String,
+      usuarioId: json['usuario_id'] as String,
+      nombre: json['nombre'] as String,
+      descripcion: json['descripcion'],
+      direccion: json['direccion'],
+      fechaCreacion: DateTime.parse(json['fecha_creacion'] as String),
+      fechaModificacion: json['fecha_modificacion'],
+    );
+
+Map<String, dynamic> _$PuntoEntregaReadToJson(PuntoEntregaRead instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'usuario_id': instance.usuarioId,
+      'nombre': instance.nombre,
+      'descripcion': instance.descripcion,
+      'direccion': instance.direccion,
+      'fecha_creacion': instance.fechaCreacion.toIso8601String(),
+      'fecha_modificacion': instance.fechaModificacion,
+    };
+
+PuntoEntregaUpdate _$PuntoEntregaUpdateFromJson(Map<String, dynamic> json) =>
+    PuntoEntregaUpdate(
+      nombre: json['nombre'],
+      descripcion: json['descripcion'],
+      direccion: json['direccion'],
+    );
+
+Map<String, dynamic> _$PuntoEntregaUpdateToJson(PuntoEntregaUpdate instance) =>
+    <String, dynamic>{
+      'nombre': instance.nombre,
+      'descripcion': instance.descripcion,
+      'direccion': instance.direccion,
     };
 
 RecetaCreate _$RecetaCreateFromJson(Map<String, dynamic> json) => RecetaCreate(
@@ -520,8 +640,6 @@ ValidationError _$ValidationErrorFromJson(Map<String, dynamic> json) =>
           [],
       msg: json['msg'] as String,
       type: json['type'] as String,
-      input: json['input'],
-      ctx: json['ctx'],
     );
 
 Map<String, dynamic> _$ValidationErrorToJson(ValidationError instance) =>
@@ -529,6 +647,4 @@ Map<String, dynamic> _$ValidationErrorToJson(ValidationError instance) =>
       'loc': instance.loc,
       'msg': instance.msg,
       'type': instance.type,
-      'input': instance.input,
-      'ctx': instance.ctx,
     };
