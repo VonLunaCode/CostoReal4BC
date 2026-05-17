@@ -17,16 +17,36 @@ class WhatsappDeepLinkButton extends StatelessWidget {
   Future<void> _launchWhatsApp(BuildContext context) async {
     final phone = whatsappUrl?.toString();
     if (phone == null || phone.isEmpty) return;
-    
-    // Limpiar número
-    final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
-    
-    // Mensaje automático para el detalle (más formal)
+
+    // Limpiar número: quitar todo lo que no sea dígito
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+
+    // Aceptar 10 dígitos (local) o 12 (con código de país 52)
+    // Siempre usamos los últimos 10 dígitos
+    String localPhone;
+    if (digits.length == 10) {
+      localPhone = digits;
+    } else if (digits.length == 12 && digits.startsWith('52')) {
+      localPhone = digits.substring(2);
+    } else if (digits.length >= 10) {
+      localPhone = digits.substring(digits.length - 10);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Número de WhatsApp no válido'),
+            backgroundColor: Color(0xFFBA1A1A),
+          ),
+        );
+      }
+      return;
+    }
+
     final mensaje = '¡Hola $clienteNombre! Te escribo de Kitchy sobre tu pedido. ¿Cómo estás?';
     final encodedMsg = Uri.encodeComponent(mensaje);
-    
-    final uri = Uri.parse('https://wa.me/52$cleanPhone?text=$encodedMsg');
-    
+
+    final uri = Uri.parse('https://wa.me/52$localPhone?text=$encodedMsg');
+
     try {
       final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!launched && context.mounted) {
@@ -39,7 +59,7 @@ class WhatsappDeepLinkButton extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No se pudo abrir WhatsApp.'),
+            content: Text('No se pudo abrir WhatsApp'),
             backgroundColor: Color(0xFFBA1A1A),
           ),
         );

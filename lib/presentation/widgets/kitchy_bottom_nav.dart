@@ -54,10 +54,7 @@ class KitchyBottomNav extends ConsumerWidget {
           // Botón Cocina Flotante Central
           GestureDetector(
             onTap: () {
-              if (currentIndex == -1 || routeActive(context, '/')) {
-                 // Refresh home if needed
-              }
-              context.go('/');
+              context.go('/cocina');
             },
             child: Container(
               padding: const EdgeInsets.all(12),

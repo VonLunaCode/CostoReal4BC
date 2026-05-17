@@ -155,8 +155,6 @@ class PedidoCardWidget extends ConsumerWidget {
               KitchyDateFormatter.formatDeliveryDate(pedido.fechaEntrega),
               style: KitchyTypography.deliveryMeta,
             ),
-            const SizedBox(height: 10),
-
             // Items list
             ...productosTexto.map(
               (text) => Padding(
@@ -164,6 +162,23 @@ class PedidoCardWidget extends ConsumerWidget {
                 child: Text(text, style: KitchyTypography.productName),
               ),
             ),
+
+            if (pedido.puntoEntregaDisplay != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.location_on_outlined, size: 13, color: Color(0xFF8B7355)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      pedido.puntoEntregaDisplay!,
+                      style: KitchyTypography.infoBody,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
 
             if (pedido.notas != null && pedido.notas!.isNotEmpty) ...[
               const SizedBox(height: 8),

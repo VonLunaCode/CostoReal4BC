@@ -303,6 +303,25 @@ final class _$Openapi extends Openapi {
   }
 
   @override
+  Future<Response<ColisionHoraResponse>> _apiV1PedidosCheckColisionGet({
+    required DateTime? fechaEntrega,
+    String? excludeId,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/pedidos/check-colision');
+    final Map<String, dynamic> $params = <String, dynamic>{
+      'fecha_entrega': fechaEntrega,
+      'exclude_id': excludeId,
+    };
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
+    return client.send<ColisionHoraResponse, ColisionHoraResponse>($request);
+  }
+
+  @override
   Future<Response<PedidoResponse>> _apiV1PedidosPedidoIdGet(
       {required String? pedidoId}) {
     final Uri $url = Uri.parse('/api/v1/pedidos/${pedidoId}');
@@ -408,6 +427,101 @@ final class _$Openapi extends Openapi {
       client.baseUrl,
     );
     return client.send<TemporizadorResponse, TemporizadorResponse>($request);
+  }
+
+  @override
+  Future<Response<List<NotificacionRead>>> _apiV1NotificacionesGet(
+      {bool? enviada}) {
+    final Uri $url = Uri.parse('/api/v1/notificaciones/');
+    final Map<String, dynamic> $params = <String, dynamic>{'enviada': enviada};
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+      parameters: $params,
+    );
+    return client.send<List<NotificacionRead>, NotificacionRead>($request);
+  }
+
+  @override
+  Future<Response<List<PuntoEntregaRead>>> _apiV1PuntosEntregaGet() {
+    final Uri $url = Uri.parse('/api/v1/puntos-entrega/');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<List<PuntoEntregaRead>, PuntoEntregaRead>($request);
+  }
+
+  @override
+  Future<Response<PuntoEntregaRead>> _apiV1PuntosEntregaPost(
+      {required PuntoEntregaCreate? body}) {
+    final Uri $url = Uri.parse('/api/v1/puntos-entrega/');
+    final $body = body;
+    final Request $request = Request(
+      'POST',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<PuntoEntregaRead, PuntoEntregaRead>($request);
+  }
+
+  @override
+  Future<Response<PuntoEntregaRead>> _apiV1PuntosEntregaPuntoEntregaIdGet(
+      {required String? puntoEntregaId}) {
+    final Uri $url = Uri.parse('/api/v1/puntos-entrega/${puntoEntregaId}');
+    final Request $request = Request(
+      'GET',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<PuntoEntregaRead, PuntoEntregaRead>($request);
+  }
+
+  @override
+  Future<Response<PuntoEntregaRead>> _apiV1PuntosEntregaPuntoEntregaIdPut({
+    required String? puntoEntregaId,
+    required PuntoEntregaUpdate? body,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/puntos-entrega/${puntoEntregaId}');
+    final $body = body;
+    final Request $request = Request(
+      'PUT',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<PuntoEntregaRead, PuntoEntregaRead>($request);
+  }
+
+  @override
+  Future<Response<PuntoEntregaRead>> _apiV1PuntosEntregaPuntoEntregaIdPatch({
+    required String? puntoEntregaId,
+    required PuntoEntregaPatch? body,
+  }) {
+    final Uri $url = Uri.parse('/api/v1/puntos-entrega/${puntoEntregaId}');
+    final $body = body;
+    final Request $request = Request(
+      'PATCH',
+      $url,
+      client.baseUrl,
+      body: $body,
+    );
+    return client.send<PuntoEntregaRead, PuntoEntregaRead>($request);
+  }
+
+  @override
+  Future<Response<dynamic>> _apiV1PuntosEntregaPuntoEntregaIdDelete(
+      {required String? puntoEntregaId}) {
+    final Uri $url = Uri.parse('/api/v1/puntos-entrega/${puntoEntregaId}');
+    final Request $request = Request(
+      'DELETE',
+      $url,
+      client.baseUrl,
+    );
+    return client.send<dynamic, dynamic>($request);
   }
 
   @override

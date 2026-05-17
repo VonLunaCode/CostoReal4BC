@@ -12,6 +12,7 @@ import '../widgets/kitchy_bottom_nav.dart';
 import 'pedidos_providers.dart';
 import 'widgets/whatsapp_deep_link_button.dart';
 import 'widgets/cambiar_estado_pedido_bottom_sheet.dart';
+import 'widgets/mapa_button_widget.dart';
 import '../../utils/date_formatter.dart';
 
 class PedidoDetailScreen extends ConsumerWidget {
@@ -101,7 +102,7 @@ class PedidoDetailScreen extends ConsumerWidget {
                             size: 13, color: KitchyColors.textSecondary),
                         const SizedBox(width: 5),
                         Text(
-                          '$formattedDate — ${pedido.puntoEntrega != null && pedido.puntoEntrega!.isNotEmpty ? 'Entrega a Domicilio' : 'Retiro en Local'}',
+                          '$formattedDate — ${pedido.puntoEntregaDisplay != null ? 'Entrega a Domicilio' : 'Retiro en Local'}',
                           style: KitchyTypography.deliveryMeta,
                         ),
                       ],
@@ -247,12 +248,14 @@ class PedidoDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // 5. Info cards (solo mostrar si tienen info)
-                if (pedido.puntoEntrega != null && pedido.puntoEntrega!.isNotEmpty) ...[
+                if (pedido.puntoEntregaDisplay != null) ...[
                   _infoCard(
                     icon: Icons.location_on_outlined,
                     label: 'DIRECCIÓN',
-                    content: pedido.puntoEntrega!,
+                    content: pedido.puntoEntregaDisplay!,
                   ),
+                  const SizedBox(height: 12),
+                  MapaButtonWidget(direccion: pedido.puntoEntregaDireccion?.toString()),
                   const SizedBox(height: 12),
                 ],
                 if (pedido.notas != null && pedido.notas!.isNotEmpty) ...[

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
 import '../../data/api_provider.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
 import '../recetas/recetas_providers.dart';
@@ -10,6 +11,7 @@ import '../../theme/kitchy_colors.dart';
 import '../../theme/kitchy_typography.dart';
 import '../../theme/kitchy_spacing.dart';
 import '../../theme/kitchy_shadows.dart';
+import '../puntos_entrega/puntos_entrega_providers.dart';
 
 class LineaFormData {
   String nombre;
@@ -47,6 +49,8 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
   DateTime _fechaSeleccionada = DateTime.now();
   TimeOfDay? _horaSeleccionada;
   bool _isLoading = false;
+  String? _puntoEntregaId;
+  bool _usarTextoLibre = false;
   
   // Lista dinámica de líneas
   List<LineaFormData> _lineas = [LineaFormData()];
@@ -58,6 +62,15 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
     _whatsappController = TextEditingController(text: widget.pedidoExistente?.clienteWhatsapp);
     _puntoEntregaController = TextEditingController(text: widget.pedidoExistente?.puntoEntrega);
     _notasController = TextEditingController(text: widget.pedidoExistente?.notas);
+    _puntoEntregaId = null;
+
+    // En edición, si tiene texto libre usamos texto libre (puntoEntregaId no viene en PedidoResponse)
+    if (widget.pedidoExistente != null) {
+      if (widget.pedidoExistente!.puntoEntrega != null &&
+          widget.pedidoExistente!.puntoEntrega!.isNotEmpty) {
+        _usarTextoLibre = true;
+      }
+    }
 
     if (widget.pedidoExistente != null) {
       final fechaLocal = widget.pedidoExistente!.fechaEntrega.toLocal();
@@ -130,6 +143,10 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
       return;
     }
 
+    // --- NUEVO: Chequeo de colisión de horario ---
+    final puedeContinuar = await _checkColision(fechaEntregaFinal);
+    if (!puedeContinuar) return;
+
     // Validar líneas
     for (var linea in _lineas) {
       if (linea.nombre.trim().isEmpty) {
@@ -162,7 +179,8 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
           clienteNombre: _nombreController.text.trim(),
           clienteWhatsapp: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
           fechaEntrega: fechaEntregaFinal.toUtc().toIso8601String(),
-          puntoEntrega: _puntoEntregaController.text.trim().isEmpty ? null : _puntoEntregaController.text.trim(),
+          puntoEntrega: _usarTextoLibre ? _puntoEntregaController.text.trim() : null,
+          puntoEntregaId: _usarTextoLibre ? null : _puntoEntregaId,
           notas: _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
           lineas: lineasPost.map((l) => l.toJson()).toList(),
         );
@@ -182,7 +200,7 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
           ref.invalidate(pedidoDetailProvider(widget.pedidoExistente!.id));
           context.pop(true);
         } else {
-          _mostrarError('Error al actualizar: ${response.error}');
+          _mostrarError(_parsearError(response.error));
         }
       } else {
         // CREACIÓN (POST)
@@ -190,7 +208,8 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
           clienteNombre: _nombreController.text.trim(),
           clienteWhatsapp: _whatsappController.text.trim().isEmpty ? null : _whatsappController.text.trim(),
           fechaEntrega: fechaEntregaFinal.toUtc(),
-          puntoEntrega: _puntoEntregaController.text.trim().isEmpty ? null : _puntoEntregaController.text.trim(),
+          puntoEntrega: _usarTextoLibre ? _puntoEntregaController.text.trim() : null,
+          puntoEntregaId: _usarTextoLibre ? null : _puntoEntregaId,
           notas: _notasController.text.trim().isEmpty ? null : _notasController.text.trim(),
           lineas: lineasPost,
         );
@@ -205,7 +224,7 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
           ref.invalidate(pedidosProvider);
           context.pop();
         } else {
-          _mostrarError('Error del servidor: ${response.error}');
+          _mostrarError(_parsearError(response.error));
         }
       }
     } catch (e) {
@@ -217,6 +236,84 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
         });
       }
     }
+  }
+
+  Future<bool> _checkColision(DateTime fechaEntrega) async {
+    setState(() => _isLoading = true);
+    try {
+      final api = ref.read(apiProvider);
+      final response = await api.apiV1PedidosCheckColisionGet(
+        fechaEntrega: fechaEntrega,
+        excludeId: widget.pedidoExistente?.id,
+      );
+
+      if (response.isSuccessful && response.body != null) {
+        final colision = response.body!;
+        if (colision.hayColision == true) {
+          if (!mounted) return true;
+          final proceed = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: KitchyColors.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KitchyRadius.card)),
+              title: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: KitchyColors.primary),
+                  SizedBox(width: 12),
+                  Text('¡Cuidado!'),
+                ],
+              ),
+              content: Text(
+                'Ya tenés ${colision.cantidad} pedido(s) agendados entre las ${colision.horaInicio} y las ${colision.horaFin}.\n\n¿Querés guardar de todas formas?',
+                style: KitchyTypography.body,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Cancelar', style: KitchyTypography.buttonSecondary),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: KitchyColors.primary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(KitchyRadius.small)),
+                  ),
+                  child: Text('Sí, guardar', style: KitchyTypography.button.copyWith(fontSize: 14)),
+                ),
+              ],
+            ),
+          );
+          return proceed ?? false;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error al chequear colisión: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+    return true;
+  }
+
+  String _parsearError(dynamic error) {
+    try {
+      final decoded = jsonDecode(error.toString());
+      if (decoded is Map && decoded['detail'] != null) {
+        final detail = decoded['detail'];
+        if (detail is String) {
+          return detail;
+        } else if (detail is List && detail.isNotEmpty) {
+          final first = detail[0];
+          if (first is Map && first['msg'] != null) {
+            return first['msg'].toString();
+          }
+          return detail.map((e) => e.toString()).join(', ');
+        }
+      }
+    } catch (_) {
+      // Parsing failed, return default
+    }
+    return 'Error al procesar el pedido. Intentá de nuevo.';
   }
 
   void _mostrarError(String mensaje) {
@@ -436,6 +533,16 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
                         hintText: 'WhatsApp (Opcional)',
                         prefixText: '+52 ',
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return null; // Optional field
+                        }
+                        final digits = value.replaceAll(RegExp(r'\D'), '');
+                        if (digits.length != 10) {
+                          return 'El número debe tener exactamente 10 dígitos';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: KitchySpacing.sectionGap),
@@ -481,14 +588,7 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
                     Text('Detalles Opcionales', style: KitchyTypography.heading1.copyWith(fontSize: 18)),
                     const SizedBox(height: 16),
                     _sectionLabel('', 'PUNTO DE ENTREGA'),
-                    TextFormField(
-                      controller: _puntoEntregaController,
-                      style: KitchyTypography.bodyBold,
-                      decoration: _kitchyInputDecoration(
-                        hintText: 'Calle, número, departamento...',
-                        suffixIcon: const Icon(Icons.location_on_outlined, color: KitchyColors.iconMuted),
-                      ),
-                    ),
+                    _buildPuntoEntregaSelector(),
                     const SizedBox(height: KitchySpacing.itemGap),
                     _sectionLabel('', 'NOTAS DEL PEDIDO'),
                     TextFormField(
@@ -702,6 +802,91 @@ class _NuevoPedidoScreenState extends ConsumerState<NuevoPedidoScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPuntoEntregaSelector() {
+    final puntosAsync = ref.watch(puntosEntregaProvider);
+
+    return puntosAsync.when(
+      data: (puntos) {
+        if (puntos.isEmpty || _usarTextoLibre) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _puntoEntregaController,
+                style: KitchyTypography.bodyBold,
+                decoration: _kitchyInputDecoration(
+                  hintText: 'Calle, número, departamento...',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      puntos.isEmpty ? Icons.add_location_alt_outlined : Icons.list_alt,
+                      color: KitchyColors.primary,
+                    ),
+                    onPressed: () {
+                      if (puntos.isEmpty) {
+                        context.push('/perfil/puntos-entrega/new');
+                      } else {
+                        setState(() {
+                          _usarTextoLibre = false;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+              if (puntos.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 4),
+                  child: Text(
+                    'No tienes puntos guardados. Agregalos en tu Perfil.',
+                    style: KitchyTypography.body.copyWith(
+                      fontSize: 12,
+                      color: KitchyColors.textSecondary,
+                    ),
+                  ),
+                ),
+            ],
+          );
+        }
+
+        return DropdownButtonFormField<String>(
+          value: _puntoEntregaId,
+          isExpanded: true,
+          style: KitchyTypography.bodyBold,
+          decoration: _kitchyInputDecoration(
+            hintText: 'Selecciona un punto guardado',
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.edit_note, color: KitchyColors.primary),
+              onPressed: () {
+                setState(() {
+                  _usarTextoLibre = true;
+                });
+              },
+            ),
+          ),
+          items: puntos.map((p) {
+            return DropdownMenuItem<String>(
+              value: p.id,
+              child: Text(p.nombre, overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: (val) {
+            setState(() {
+              _puntoEntregaId = val;
+            });
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => TextFormField(
+        controller: _puntoEntregaController,
+        style: KitchyTypography.bodyBold,
+        decoration: _kitchyInputDecoration(
+          hintText: 'Calle, número, departamento...',
+        ),
       ),
     );
   }

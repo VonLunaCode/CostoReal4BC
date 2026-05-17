@@ -22,6 +22,7 @@ class KitchyRadius {
   static const double small   = 8.0;   // inputs, chips pequeños
   static const double medium  = 12.0;  // cards de producto, inputs grandes
   static const double large   = 16.0;  // cards de sección
+  static const double card    = 16.0;  // alias de large para cards
   static const double button  = 12.0;  // botón principal
   static const double pill    = 50.0;  // chips de hora (pill shape)
   static const double avatar  = 50.0;  // avatar circular

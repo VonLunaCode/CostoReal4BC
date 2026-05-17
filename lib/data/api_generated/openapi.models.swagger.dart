@@ -117,6 +117,84 @@ extension $BodyLoginForAccessTokenApiV1AuthLoginPostExtension
 }
 
 @JsonSerializable(explicitToJson: true)
+class ColisionHoraResponse {
+  const ColisionHoraResponse({
+    required this.hayColision,
+    required this.cantidad,
+    required this.horaInicio,
+    required this.horaFin,
+  });
+
+  factory ColisionHoraResponse.fromJson(Map<String, dynamic> json) =>
+      _$ColisionHoraResponseFromJson(json);
+
+  static const toJsonFactory = _$ColisionHoraResponseToJson;
+  Map<String, dynamic> toJson() => _$ColisionHoraResponseToJson(this);
+
+  @JsonKey(name: 'hay_colision')
+  final bool hayColision;
+  @JsonKey(name: 'cantidad')
+  final int cantidad;
+  @JsonKey(name: 'hora_inicio')
+  final String horaInicio;
+  @JsonKey(name: 'hora_fin')
+  final String horaFin;
+  static const fromJsonFactory = _$ColisionHoraResponseFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is ColisionHoraResponse &&
+            (identical(other.hayColision, hayColision) ||
+                const DeepCollectionEquality()
+                    .equals(other.hayColision, hayColision)) &&
+            (identical(other.cantidad, cantidad) ||
+                const DeepCollectionEquality()
+                    .equals(other.cantidad, cantidad)) &&
+            (identical(other.horaInicio, horaInicio) ||
+                const DeepCollectionEquality()
+                    .equals(other.horaInicio, horaInicio)) &&
+            (identical(other.horaFin, horaFin) ||
+                const DeepCollectionEquality().equals(other.horaFin, horaFin)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(hayColision) ^
+      const DeepCollectionEquality().hash(cantidad) ^
+      const DeepCollectionEquality().hash(horaInicio) ^
+      const DeepCollectionEquality().hash(horaFin) ^
+      runtimeType.hashCode;
+}
+
+extension $ColisionHoraResponseExtension on ColisionHoraResponse {
+  ColisionHoraResponse copyWith(
+      {bool? hayColision, int? cantidad, String? horaInicio, String? horaFin}) {
+    return ColisionHoraResponse(
+        hayColision: hayColision ?? this.hayColision,
+        cantidad: cantidad ?? this.cantidad,
+        horaInicio: horaInicio ?? this.horaInicio,
+        horaFin: horaFin ?? this.horaFin);
+  }
+
+  ColisionHoraResponse copyWithWrapped(
+      {Wrapped<bool>? hayColision,
+      Wrapped<int>? cantidad,
+      Wrapped<String>? horaInicio,
+      Wrapped<String>? horaFin}) {
+    return ColisionHoraResponse(
+        hayColision:
+            (hayColision != null ? hayColision.value : this.hayColision),
+        cantidad: (cantidad != null ? cantidad.value : this.cantidad),
+        horaInicio: (horaInicio != null ? horaInicio.value : this.horaInicio),
+        horaFin: (horaFin != null ? horaFin.value : this.horaFin));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
 class GastoOcultoCreate {
   const GastoOcultoCreate({
     required this.tipo,
@@ -1212,10 +1290,126 @@ extension $MovimientoResponseExtension on MovimientoResponse {
 }
 
 @JsonSerializable(explicitToJson: true)
+class NotificacionRead {
+  const NotificacionRead({
+    required this.tipo,
+    required this.fechaProgramada,
+    this.pedidoId,
+    this.insumoId,
+    required this.id,
+    required this.enviada,
+    this.fechaEnvio,
+  });
+
+  factory NotificacionRead.fromJson(Map<String, dynamic> json) =>
+      _$NotificacionReadFromJson(json);
+
+  static const toJsonFactory = _$NotificacionReadToJson;
+  Map<String, dynamic> toJson() => _$NotificacionReadToJson(this);
+
+  @JsonKey(name: 'tipo')
+  final String tipo;
+  @JsonKey(name: 'fecha_programada')
+  final DateTime fechaProgramada;
+  @JsonKey(name: 'pedido_id')
+  final dynamic pedidoId;
+  @JsonKey(name: 'insumo_id')
+  final dynamic insumoId;
+  @JsonKey(name: 'id')
+  final String id;
+  @JsonKey(name: 'enviada')
+  final bool enviada;
+  @JsonKey(name: 'fecha_envio')
+  final dynamic fechaEnvio;
+  static const fromJsonFactory = _$NotificacionReadFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is NotificacionRead &&
+            (identical(other.tipo, tipo) ||
+                const DeepCollectionEquality().equals(other.tipo, tipo)) &&
+            (identical(other.fechaProgramada, fechaProgramada) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaProgramada, fechaProgramada)) &&
+            (identical(other.pedidoId, pedidoId) ||
+                const DeepCollectionEquality()
+                    .equals(other.pedidoId, pedidoId)) &&
+            (identical(other.insumoId, insumoId) ||
+                const DeepCollectionEquality()
+                    .equals(other.insumoId, insumoId)) &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.enviada, enviada) ||
+                const DeepCollectionEquality()
+                    .equals(other.enviada, enviada)) &&
+            (identical(other.fechaEnvio, fechaEnvio) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaEnvio, fechaEnvio)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(tipo) ^
+      const DeepCollectionEquality().hash(fechaProgramada) ^
+      const DeepCollectionEquality().hash(pedidoId) ^
+      const DeepCollectionEquality().hash(insumoId) ^
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(enviada) ^
+      const DeepCollectionEquality().hash(fechaEnvio) ^
+      runtimeType.hashCode;
+}
+
+extension $NotificacionReadExtension on NotificacionRead {
+  NotificacionRead copyWith(
+      {String? tipo,
+      DateTime? fechaProgramada,
+      dynamic pedidoId,
+      dynamic insumoId,
+      String? id,
+      bool? enviada,
+      dynamic fechaEnvio}) {
+    return NotificacionRead(
+        tipo: tipo ?? this.tipo,
+        fechaProgramada: fechaProgramada ?? this.fechaProgramada,
+        pedidoId: pedidoId ?? this.pedidoId,
+        insumoId: insumoId ?? this.insumoId,
+        id: id ?? this.id,
+        enviada: enviada ?? this.enviada,
+        fechaEnvio: fechaEnvio ?? this.fechaEnvio);
+  }
+
+  NotificacionRead copyWithWrapped(
+      {Wrapped<String>? tipo,
+      Wrapped<DateTime>? fechaProgramada,
+      Wrapped<dynamic>? pedidoId,
+      Wrapped<dynamic>? insumoId,
+      Wrapped<String>? id,
+      Wrapped<bool>? enviada,
+      Wrapped<dynamic>? fechaEnvio}) {
+    return NotificacionRead(
+        tipo: (tipo != null ? tipo.value : this.tipo),
+        fechaProgramada: (fechaProgramada != null
+            ? fechaProgramada.value
+            : this.fechaProgramada),
+        pedidoId: (pedidoId != null ? pedidoId.value : this.pedidoId),
+        insumoId: (insumoId != null ? insumoId.value : this.insumoId),
+        id: (id != null ? id.value : this.id),
+        enviada: (enviada != null ? enviada.value : this.enviada),
+        fechaEnvio: (fechaEnvio != null ? fechaEnvio.value : this.fechaEnvio));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
 class PasoCreate {
   const PasoCreate({
     required this.orden,
     required this.descripcion,
+    this.duracion,
+    this.unidad,
     this.duracionSegundos,
     this.esCritico,
   });
@@ -1230,6 +1424,10 @@ class PasoCreate {
   final int orden;
   @JsonKey(name: 'descripcion')
   final String descripcion;
+  @JsonKey(name: 'duracion')
+  final dynamic duracion;
+  @JsonKey(name: 'unidad')
+  final dynamic unidad;
   @JsonKey(name: 'duracion_segundos')
   final dynamic duracionSegundos;
   @JsonKey(name: 'es_critico', defaultValue: false)
@@ -1245,6 +1443,11 @@ class PasoCreate {
             (identical(other.descripcion, descripcion) ||
                 const DeepCollectionEquality()
                     .equals(other.descripcion, descripcion)) &&
+            (identical(other.duracion, duracion) ||
+                const DeepCollectionEquality()
+                    .equals(other.duracion, duracion)) &&
+            (identical(other.unidad, unidad) ||
+                const DeepCollectionEquality().equals(other.unidad, unidad)) &&
             (identical(other.duracionSegundos, duracionSegundos) ||
                 const DeepCollectionEquality()
                     .equals(other.duracionSegundos, duracionSegundos)) &&
@@ -1260,6 +1463,8 @@ class PasoCreate {
   int get hashCode =>
       const DeepCollectionEquality().hash(orden) ^
       const DeepCollectionEquality().hash(descripcion) ^
+      const DeepCollectionEquality().hash(duracion) ^
+      const DeepCollectionEquality().hash(unidad) ^
       const DeepCollectionEquality().hash(duracionSegundos) ^
       const DeepCollectionEquality().hash(esCritico) ^
       runtimeType.hashCode;
@@ -1269,11 +1474,15 @@ extension $PasoCreateExtension on PasoCreate {
   PasoCreate copyWith(
       {int? orden,
       String? descripcion,
+      dynamic duracion,
+      dynamic unidad,
       dynamic duracionSegundos,
       bool? esCritico}) {
     return PasoCreate(
         orden: orden ?? this.orden,
         descripcion: descripcion ?? this.descripcion,
+        duracion: duracion ?? this.duracion,
+        unidad: unidad ?? this.unidad,
         duracionSegundos: duracionSegundos ?? this.duracionSegundos,
         esCritico: esCritico ?? this.esCritico);
   }
@@ -1281,12 +1490,16 @@ extension $PasoCreateExtension on PasoCreate {
   PasoCreate copyWithWrapped(
       {Wrapped<int>? orden,
       Wrapped<String>? descripcion,
+      Wrapped<dynamic>? duracion,
+      Wrapped<dynamic>? unidad,
       Wrapped<dynamic>? duracionSegundos,
       Wrapped<bool?>? esCritico}) {
     return PasoCreate(
         orden: (orden != null ? orden.value : this.orden),
         descripcion:
             (descripcion != null ? descripcion.value : this.descripcion),
+        duracion: (duracion != null ? duracion.value : this.duracion),
+        unidad: (unidad != null ? unidad.value : this.unidad),
         duracionSegundos: (duracionSegundos != null
             ? duracionSegundos.value
             : this.duracionSegundos),
@@ -1299,6 +1512,8 @@ class PasoResponse {
   const PasoResponse({
     required this.orden,
     required this.descripcion,
+    this.duracion,
+    this.unidad,
     this.duracionSegundos,
     this.esCritico,
     required this.id,
@@ -1314,6 +1529,10 @@ class PasoResponse {
   final int orden;
   @JsonKey(name: 'descripcion')
   final String descripcion;
+  @JsonKey(name: 'duracion')
+  final dynamic duracion;
+  @JsonKey(name: 'unidad')
+  final dynamic unidad;
   @JsonKey(name: 'duracion_segundos')
   final dynamic duracionSegundos;
   @JsonKey(name: 'es_critico', defaultValue: false)
@@ -1331,6 +1550,11 @@ class PasoResponse {
             (identical(other.descripcion, descripcion) ||
                 const DeepCollectionEquality()
                     .equals(other.descripcion, descripcion)) &&
+            (identical(other.duracion, duracion) ||
+                const DeepCollectionEquality()
+                    .equals(other.duracion, duracion)) &&
+            (identical(other.unidad, unidad) ||
+                const DeepCollectionEquality().equals(other.unidad, unidad)) &&
             (identical(other.duracionSegundos, duracionSegundos) ||
                 const DeepCollectionEquality()
                     .equals(other.duracionSegundos, duracionSegundos)) &&
@@ -1348,6 +1572,8 @@ class PasoResponse {
   int get hashCode =>
       const DeepCollectionEquality().hash(orden) ^
       const DeepCollectionEquality().hash(descripcion) ^
+      const DeepCollectionEquality().hash(duracion) ^
+      const DeepCollectionEquality().hash(unidad) ^
       const DeepCollectionEquality().hash(duracionSegundos) ^
       const DeepCollectionEquality().hash(esCritico) ^
       const DeepCollectionEquality().hash(id) ^
@@ -1358,12 +1584,16 @@ extension $PasoResponseExtension on PasoResponse {
   PasoResponse copyWith(
       {int? orden,
       String? descripcion,
+      dynamic duracion,
+      dynamic unidad,
       dynamic duracionSegundos,
       bool? esCritico,
       String? id}) {
     return PasoResponse(
         orden: orden ?? this.orden,
         descripcion: descripcion ?? this.descripcion,
+        duracion: duracion ?? this.duracion,
+        unidad: unidad ?? this.unidad,
         duracionSegundos: duracionSegundos ?? this.duracionSegundos,
         esCritico: esCritico ?? this.esCritico,
         id: id ?? this.id);
@@ -1372,6 +1602,8 @@ extension $PasoResponseExtension on PasoResponse {
   PasoResponse copyWithWrapped(
       {Wrapped<int>? orden,
       Wrapped<String>? descripcion,
+      Wrapped<dynamic>? duracion,
+      Wrapped<dynamic>? unidad,
       Wrapped<dynamic>? duracionSegundos,
       Wrapped<bool?>? esCritico,
       Wrapped<String>? id}) {
@@ -1379,6 +1611,8 @@ extension $PasoResponseExtension on PasoResponse {
         orden: (orden != null ? orden.value : this.orden),
         descripcion:
             (descripcion != null ? descripcion.value : this.descripcion),
+        duracion: (duracion != null ? duracion.value : this.duracion),
+        unidad: (unidad != null ? unidad.value : this.unidad),
         duracionSegundos: (duracionSegundos != null
             ? duracionSegundos.value
             : this.duracionSegundos),
@@ -1394,6 +1628,7 @@ class PedidoCreate {
     this.clienteWhatsapp,
     required this.fechaEntrega,
     this.puntoEntrega,
+    this.puntoEntregaId,
     this.notas,
     required this.lineas,
   });
@@ -1412,6 +1647,8 @@ class PedidoCreate {
   final DateTime fechaEntrega;
   @JsonKey(name: 'punto_entrega')
   final dynamic puntoEntrega;
+  @JsonKey(name: 'punto_entrega_id')
+  final dynamic puntoEntregaId;
   @JsonKey(name: 'notas')
   final dynamic notas;
   @JsonKey(name: 'lineas', defaultValue: <LineaPedidoCreate>[])
@@ -1434,6 +1671,9 @@ class PedidoCreate {
             (identical(other.puntoEntrega, puntoEntrega) ||
                 const DeepCollectionEquality()
                     .equals(other.puntoEntrega, puntoEntrega)) &&
+            (identical(other.puntoEntregaId, puntoEntregaId) ||
+                const DeepCollectionEquality()
+                    .equals(other.puntoEntregaId, puntoEntregaId)) &&
             (identical(other.notas, notas) ||
                 const DeepCollectionEquality().equals(other.notas, notas)) &&
             (identical(other.lineas, lineas) ||
@@ -1449,6 +1689,7 @@ class PedidoCreate {
       const DeepCollectionEquality().hash(clienteWhatsapp) ^
       const DeepCollectionEquality().hash(fechaEntrega) ^
       const DeepCollectionEquality().hash(puntoEntrega) ^
+      const DeepCollectionEquality().hash(puntoEntregaId) ^
       const DeepCollectionEquality().hash(notas) ^
       const DeepCollectionEquality().hash(lineas) ^
       runtimeType.hashCode;
@@ -1460,6 +1701,7 @@ extension $PedidoCreateExtension on PedidoCreate {
       dynamic clienteWhatsapp,
       DateTime? fechaEntrega,
       dynamic puntoEntrega,
+      dynamic puntoEntregaId,
       dynamic notas,
       List<LineaPedidoCreate>? lineas}) {
     return PedidoCreate(
@@ -1467,6 +1709,7 @@ extension $PedidoCreateExtension on PedidoCreate {
         clienteWhatsapp: clienteWhatsapp ?? this.clienteWhatsapp,
         fechaEntrega: fechaEntrega ?? this.fechaEntrega,
         puntoEntrega: puntoEntrega ?? this.puntoEntrega,
+        puntoEntregaId: puntoEntregaId ?? this.puntoEntregaId,
         notas: notas ?? this.notas,
         lineas: lineas ?? this.lineas);
   }
@@ -1476,6 +1719,7 @@ extension $PedidoCreateExtension on PedidoCreate {
       Wrapped<dynamic>? clienteWhatsapp,
       Wrapped<DateTime>? fechaEntrega,
       Wrapped<dynamic>? puntoEntrega,
+      Wrapped<dynamic>? puntoEntregaId,
       Wrapped<dynamic>? notas,
       Wrapped<List<LineaPedidoCreate>>? lineas}) {
     return PedidoCreate(
@@ -1488,6 +1732,9 @@ extension $PedidoCreateExtension on PedidoCreate {
             (fechaEntrega != null ? fechaEntrega.value : this.fechaEntrega),
         puntoEntrega:
             (puntoEntrega != null ? puntoEntrega.value : this.puntoEntrega),
+        puntoEntregaId: (puntoEntregaId != null
+            ? puntoEntregaId.value
+            : this.puntoEntregaId),
         notas: (notas != null ? notas.value : this.notas),
         lineas: (lineas != null ? lineas.value : this.lineas));
   }
@@ -1506,6 +1753,8 @@ class PedidoResponse {
     this.notas,
     required this.lineas,
     this.whatsappUrl,
+    this.puntoEntregaDisplay,
+    this.puntoEntregaDireccion,
   });
 
   factory PedidoResponse.fromJson(Map<String, dynamic> json) =>
@@ -1534,6 +1783,10 @@ class PedidoResponse {
   final List<LineaPedidoResponse> lineas;
   @JsonKey(name: 'whatsapp_url')
   final dynamic whatsappUrl;
+  @JsonKey(name: 'punto_entrega_display')
+  final dynamic puntoEntregaDisplay;
+  @JsonKey(name: 'punto_entrega_direccion')
+  final dynamic puntoEntregaDireccion;
   static const fromJsonFactory = _$PedidoResponseFromJson;
 
   @override
@@ -1565,7 +1818,13 @@ class PedidoResponse {
                 const DeepCollectionEquality().equals(other.lineas, lineas)) &&
             (identical(other.whatsappUrl, whatsappUrl) ||
                 const DeepCollectionEquality()
-                    .equals(other.whatsappUrl, whatsappUrl)));
+                    .equals(other.whatsappUrl, whatsappUrl)) &&
+            (identical(other.puntoEntregaDisplay, puntoEntregaDisplay) ||
+                const DeepCollectionEquality()
+                    .equals(other.puntoEntregaDisplay, puntoEntregaDisplay)) &&
+            (identical(other.puntoEntregaDireccion, puntoEntregaDireccion) ||
+                const DeepCollectionEquality().equals(
+                    other.puntoEntregaDireccion, puntoEntregaDireccion)));
   }
 
   @override
@@ -1583,6 +1842,8 @@ class PedidoResponse {
       const DeepCollectionEquality().hash(notas) ^
       const DeepCollectionEquality().hash(lineas) ^
       const DeepCollectionEquality().hash(whatsappUrl) ^
+      const DeepCollectionEquality().hash(puntoEntregaDisplay) ^
+      const DeepCollectionEquality().hash(puntoEntregaDireccion) ^
       runtimeType.hashCode;
 }
 
@@ -1597,7 +1858,9 @@ extension $PedidoResponseExtension on PedidoResponse {
       String? estado,
       dynamic notas,
       List<LineaPedidoResponse>? lineas,
-      dynamic whatsappUrl}) {
+      dynamic whatsappUrl,
+      dynamic puntoEntregaDisplay,
+      dynamic puntoEntregaDireccion}) {
     return PedidoResponse(
         id: id ?? this.id,
         usuarioId: usuarioId ?? this.usuarioId,
@@ -1608,7 +1871,10 @@ extension $PedidoResponseExtension on PedidoResponse {
         estado: estado ?? this.estado,
         notas: notas ?? this.notas,
         lineas: lineas ?? this.lineas,
-        whatsappUrl: whatsappUrl ?? this.whatsappUrl);
+        whatsappUrl: whatsappUrl ?? this.whatsappUrl,
+        puntoEntregaDisplay: puntoEntregaDisplay ?? this.puntoEntregaDisplay,
+        puntoEntregaDireccion:
+            puntoEntregaDireccion ?? this.puntoEntregaDireccion);
   }
 
   PedidoResponse copyWithWrapped(
@@ -1621,7 +1887,9 @@ extension $PedidoResponseExtension on PedidoResponse {
       Wrapped<String>? estado,
       Wrapped<dynamic>? notas,
       Wrapped<List<LineaPedidoResponse>>? lineas,
-      Wrapped<dynamic>? whatsappUrl}) {
+      Wrapped<dynamic>? whatsappUrl,
+      Wrapped<dynamic>? puntoEntregaDisplay,
+      Wrapped<dynamic>? puntoEntregaDireccion}) {
     return PedidoResponse(
         id: (id != null ? id.value : this.id),
         usuarioId: (usuarioId != null ? usuarioId.value : this.usuarioId),
@@ -1638,7 +1906,13 @@ extension $PedidoResponseExtension on PedidoResponse {
         notas: (notas != null ? notas.value : this.notas),
         lineas: (lineas != null ? lineas.value : this.lineas),
         whatsappUrl:
-            (whatsappUrl != null ? whatsappUrl.value : this.whatsappUrl));
+            (whatsappUrl != null ? whatsappUrl.value : this.whatsappUrl),
+        puntoEntregaDisplay: (puntoEntregaDisplay != null
+            ? puntoEntregaDisplay.value
+            : this.puntoEntregaDisplay),
+        puntoEntregaDireccion: (puntoEntregaDireccion != null
+            ? puntoEntregaDireccion.value
+            : this.puntoEntregaDireccion));
   }
 }
 
@@ -1649,6 +1923,7 @@ class PedidoUpdate {
     this.clienteWhatsapp,
     this.fechaEntrega,
     this.puntoEntrega,
+    this.puntoEntregaId,
     this.notas,
     this.lineas,
   });
@@ -1667,6 +1942,8 @@ class PedidoUpdate {
   final dynamic fechaEntrega;
   @JsonKey(name: 'punto_entrega')
   final dynamic puntoEntrega;
+  @JsonKey(name: 'punto_entrega_id')
+  final dynamic puntoEntregaId;
   @JsonKey(name: 'notas')
   final dynamic notas;
   @JsonKey(name: 'lineas')
@@ -1689,6 +1966,9 @@ class PedidoUpdate {
             (identical(other.puntoEntrega, puntoEntrega) ||
                 const DeepCollectionEquality()
                     .equals(other.puntoEntrega, puntoEntrega)) &&
+            (identical(other.puntoEntregaId, puntoEntregaId) ||
+                const DeepCollectionEquality()
+                    .equals(other.puntoEntregaId, puntoEntregaId)) &&
             (identical(other.notas, notas) ||
                 const DeepCollectionEquality().equals(other.notas, notas)) &&
             (identical(other.lineas, lineas) ||
@@ -1704,6 +1984,7 @@ class PedidoUpdate {
       const DeepCollectionEquality().hash(clienteWhatsapp) ^
       const DeepCollectionEquality().hash(fechaEntrega) ^
       const DeepCollectionEquality().hash(puntoEntrega) ^
+      const DeepCollectionEquality().hash(puntoEntregaId) ^
       const DeepCollectionEquality().hash(notas) ^
       const DeepCollectionEquality().hash(lineas) ^
       runtimeType.hashCode;
@@ -1715,6 +1996,7 @@ extension $PedidoUpdateExtension on PedidoUpdate {
       dynamic clienteWhatsapp,
       dynamic fechaEntrega,
       dynamic puntoEntrega,
+      dynamic puntoEntregaId,
       dynamic notas,
       dynamic lineas}) {
     return PedidoUpdate(
@@ -1722,6 +2004,7 @@ extension $PedidoUpdateExtension on PedidoUpdate {
         clienteWhatsapp: clienteWhatsapp ?? this.clienteWhatsapp,
         fechaEntrega: fechaEntrega ?? this.fechaEntrega,
         puntoEntrega: puntoEntrega ?? this.puntoEntrega,
+        puntoEntregaId: puntoEntregaId ?? this.puntoEntregaId,
         notas: notas ?? this.notas,
         lineas: lineas ?? this.lineas);
   }
@@ -1731,6 +2014,7 @@ extension $PedidoUpdateExtension on PedidoUpdate {
       Wrapped<dynamic>? clienteWhatsapp,
       Wrapped<dynamic>? fechaEntrega,
       Wrapped<dynamic>? puntoEntrega,
+      Wrapped<dynamic>? puntoEntregaId,
       Wrapped<dynamic>? notas,
       Wrapped<dynamic>? lineas}) {
     return PedidoUpdate(
@@ -1743,8 +2027,331 @@ extension $PedidoUpdateExtension on PedidoUpdate {
             (fechaEntrega != null ? fechaEntrega.value : this.fechaEntrega),
         puntoEntrega:
             (puntoEntrega != null ? puntoEntrega.value : this.puntoEntrega),
+        puntoEntregaId: (puntoEntregaId != null
+            ? puntoEntregaId.value
+            : this.puntoEntregaId),
         notas: (notas != null ? notas.value : this.notas),
         lineas: (lineas != null ? lineas.value : this.lineas));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class PuntoEntregaCreate {
+  const PuntoEntregaCreate({
+    required this.nombre,
+    this.descripcion,
+    this.direccion,
+  });
+
+  factory PuntoEntregaCreate.fromJson(Map<String, dynamic> json) =>
+      _$PuntoEntregaCreateFromJson(json);
+
+  static const toJsonFactory = _$PuntoEntregaCreateToJson;
+  Map<String, dynamic> toJson() => _$PuntoEntregaCreateToJson(this);
+
+  @JsonKey(name: 'nombre')
+  final String nombre;
+  @JsonKey(name: 'descripcion')
+  final dynamic descripcion;
+  @JsonKey(name: 'direccion')
+  final dynamic direccion;
+  static const fromJsonFactory = _$PuntoEntregaCreateFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PuntoEntregaCreate &&
+            (identical(other.nombre, nombre) ||
+                const DeepCollectionEquality().equals(other.nombre, nombre)) &&
+            (identical(other.descripcion, descripcion) ||
+                const DeepCollectionEquality()
+                    .equals(other.descripcion, descripcion)) &&
+            (identical(other.direccion, direccion) ||
+                const DeepCollectionEquality()
+                    .equals(other.direccion, direccion)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(nombre) ^
+      const DeepCollectionEquality().hash(descripcion) ^
+      const DeepCollectionEquality().hash(direccion) ^
+      runtimeType.hashCode;
+}
+
+extension $PuntoEntregaCreateExtension on PuntoEntregaCreate {
+  PuntoEntregaCreate copyWith(
+      {String? nombre, dynamic descripcion, dynamic direccion}) {
+    return PuntoEntregaCreate(
+        nombre: nombre ?? this.nombre,
+        descripcion: descripcion ?? this.descripcion,
+        direccion: direccion ?? this.direccion);
+  }
+
+  PuntoEntregaCreate copyWithWrapped(
+      {Wrapped<String>? nombre,
+      Wrapped<dynamic>? descripcion,
+      Wrapped<dynamic>? direccion}) {
+    return PuntoEntregaCreate(
+        nombre: (nombre != null ? nombre.value : this.nombre),
+        descripcion:
+            (descripcion != null ? descripcion.value : this.descripcion),
+        direccion: (direccion != null ? direccion.value : this.direccion));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class PuntoEntregaPatch {
+  const PuntoEntregaPatch({
+    this.nombre,
+    this.descripcion,
+    this.direccion,
+  });
+
+  factory PuntoEntregaPatch.fromJson(Map<String, dynamic> json) =>
+      _$PuntoEntregaPatchFromJson(json);
+
+  static const toJsonFactory = _$PuntoEntregaPatchToJson;
+  Map<String, dynamic> toJson() => _$PuntoEntregaPatchToJson(this);
+
+  @JsonKey(name: 'nombre')
+  final dynamic nombre;
+  @JsonKey(name: 'descripcion')
+  final dynamic descripcion;
+  @JsonKey(name: 'direccion')
+  final dynamic direccion;
+  static const fromJsonFactory = _$PuntoEntregaPatchFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PuntoEntregaPatch &&
+            (identical(other.nombre, nombre) ||
+                const DeepCollectionEquality().equals(other.nombre, nombre)) &&
+            (identical(other.descripcion, descripcion) ||
+                const DeepCollectionEquality()
+                    .equals(other.descripcion, descripcion)) &&
+            (identical(other.direccion, direccion) ||
+                const DeepCollectionEquality()
+                    .equals(other.direccion, direccion)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(nombre) ^
+      const DeepCollectionEquality().hash(descripcion) ^
+      const DeepCollectionEquality().hash(direccion) ^
+      runtimeType.hashCode;
+}
+
+extension $PuntoEntregaPatchExtension on PuntoEntregaPatch {
+  PuntoEntregaPatch copyWith(
+      {dynamic nombre, dynamic descripcion, dynamic direccion}) {
+    return PuntoEntregaPatch(
+        nombre: nombre ?? this.nombre,
+        descripcion: descripcion ?? this.descripcion,
+        direccion: direccion ?? this.direccion);
+  }
+
+  PuntoEntregaPatch copyWithWrapped(
+      {Wrapped<dynamic>? nombre,
+      Wrapped<dynamic>? descripcion,
+      Wrapped<dynamic>? direccion}) {
+    return PuntoEntregaPatch(
+        nombre: (nombre != null ? nombre.value : this.nombre),
+        descripcion:
+            (descripcion != null ? descripcion.value : this.descripcion),
+        direccion: (direccion != null ? direccion.value : this.direccion));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class PuntoEntregaRead {
+  const PuntoEntregaRead({
+    required this.id,
+    required this.usuarioId,
+    required this.nombre,
+    this.descripcion,
+    this.direccion,
+    required this.fechaCreacion,
+    this.fechaModificacion,
+  });
+
+  factory PuntoEntregaRead.fromJson(Map<String, dynamic> json) =>
+      _$PuntoEntregaReadFromJson(json);
+
+  static const toJsonFactory = _$PuntoEntregaReadToJson;
+  Map<String, dynamic> toJson() => _$PuntoEntregaReadToJson(this);
+
+  @JsonKey(name: 'id')
+  final String id;
+  @JsonKey(name: 'usuario_id')
+  final String usuarioId;
+  @JsonKey(name: 'nombre')
+  final String nombre;
+  @JsonKey(name: 'descripcion')
+  final dynamic descripcion;
+  @JsonKey(name: 'direccion')
+  final dynamic direccion;
+  @JsonKey(name: 'fecha_creacion')
+  final DateTime fechaCreacion;
+  @JsonKey(name: 'fecha_modificacion')
+  final dynamic fechaModificacion;
+  static const fromJsonFactory = _$PuntoEntregaReadFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PuntoEntregaRead &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.usuarioId, usuarioId) ||
+                const DeepCollectionEquality()
+                    .equals(other.usuarioId, usuarioId)) &&
+            (identical(other.nombre, nombre) ||
+                const DeepCollectionEquality().equals(other.nombre, nombre)) &&
+            (identical(other.descripcion, descripcion) ||
+                const DeepCollectionEquality()
+                    .equals(other.descripcion, descripcion)) &&
+            (identical(other.direccion, direccion) ||
+                const DeepCollectionEquality()
+                    .equals(other.direccion, direccion)) &&
+            (identical(other.fechaCreacion, fechaCreacion) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaCreacion, fechaCreacion)) &&
+            (identical(other.fechaModificacion, fechaModificacion) ||
+                const DeepCollectionEquality()
+                    .equals(other.fechaModificacion, fechaModificacion)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(usuarioId) ^
+      const DeepCollectionEquality().hash(nombre) ^
+      const DeepCollectionEquality().hash(descripcion) ^
+      const DeepCollectionEquality().hash(direccion) ^
+      const DeepCollectionEquality().hash(fechaCreacion) ^
+      const DeepCollectionEquality().hash(fechaModificacion) ^
+      runtimeType.hashCode;
+}
+
+extension $PuntoEntregaReadExtension on PuntoEntregaRead {
+  PuntoEntregaRead copyWith(
+      {String? id,
+      String? usuarioId,
+      String? nombre,
+      dynamic descripcion,
+      dynamic direccion,
+      DateTime? fechaCreacion,
+      dynamic fechaModificacion}) {
+    return PuntoEntregaRead(
+        id: id ?? this.id,
+        usuarioId: usuarioId ?? this.usuarioId,
+        nombre: nombre ?? this.nombre,
+        descripcion: descripcion ?? this.descripcion,
+        direccion: direccion ?? this.direccion,
+        fechaCreacion: fechaCreacion ?? this.fechaCreacion,
+        fechaModificacion: fechaModificacion ?? this.fechaModificacion);
+  }
+
+  PuntoEntregaRead copyWithWrapped(
+      {Wrapped<String>? id,
+      Wrapped<String>? usuarioId,
+      Wrapped<String>? nombre,
+      Wrapped<dynamic>? descripcion,
+      Wrapped<dynamic>? direccion,
+      Wrapped<DateTime>? fechaCreacion,
+      Wrapped<dynamic>? fechaModificacion}) {
+    return PuntoEntregaRead(
+        id: (id != null ? id.value : this.id),
+        usuarioId: (usuarioId != null ? usuarioId.value : this.usuarioId),
+        nombre: (nombre != null ? nombre.value : this.nombre),
+        descripcion:
+            (descripcion != null ? descripcion.value : this.descripcion),
+        direccion: (direccion != null ? direccion.value : this.direccion),
+        fechaCreacion:
+            (fechaCreacion != null ? fechaCreacion.value : this.fechaCreacion),
+        fechaModificacion: (fechaModificacion != null
+            ? fechaModificacion.value
+            : this.fechaModificacion));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class PuntoEntregaUpdate {
+  const PuntoEntregaUpdate({
+    this.nombre,
+    this.descripcion,
+    this.direccion,
+  });
+
+  factory PuntoEntregaUpdate.fromJson(Map<String, dynamic> json) =>
+      _$PuntoEntregaUpdateFromJson(json);
+
+  static const toJsonFactory = _$PuntoEntregaUpdateToJson;
+  Map<String, dynamic> toJson() => _$PuntoEntregaUpdateToJson(this);
+
+  @JsonKey(name: 'nombre')
+  final dynamic nombre;
+  @JsonKey(name: 'descripcion')
+  final dynamic descripcion;
+  @JsonKey(name: 'direccion')
+  final dynamic direccion;
+  static const fromJsonFactory = _$PuntoEntregaUpdateFromJson;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is PuntoEntregaUpdate &&
+            (identical(other.nombre, nombre) ||
+                const DeepCollectionEquality().equals(other.nombre, nombre)) &&
+            (identical(other.descripcion, descripcion) ||
+                const DeepCollectionEquality()
+                    .equals(other.descripcion, descripcion)) &&
+            (identical(other.direccion, direccion) ||
+                const DeepCollectionEquality()
+                    .equals(other.direccion, direccion)));
+  }
+
+  @override
+  String toString() => jsonEncode(this);
+
+  @override
+  int get hashCode =>
+      const DeepCollectionEquality().hash(nombre) ^
+      const DeepCollectionEquality().hash(descripcion) ^
+      const DeepCollectionEquality().hash(direccion) ^
+      runtimeType.hashCode;
+}
+
+extension $PuntoEntregaUpdateExtension on PuntoEntregaUpdate {
+  PuntoEntregaUpdate copyWith(
+      {dynamic nombre, dynamic descripcion, dynamic direccion}) {
+    return PuntoEntregaUpdate(
+        nombre: nombre ?? this.nombre,
+        descripcion: descripcion ?? this.descripcion,
+        direccion: direccion ?? this.direccion);
+  }
+
+  PuntoEntregaUpdate copyWithWrapped(
+      {Wrapped<dynamic>? nombre,
+      Wrapped<dynamic>? descripcion,
+      Wrapped<dynamic>? direccion}) {
+    return PuntoEntregaUpdate(
+        nombre: (nombre != null ? nombre.value : this.nombre),
+        descripcion:
+            (descripcion != null ? descripcion.value : this.descripcion),
+        direccion: (direccion != null ? direccion.value : this.direccion));
   }
 }
 
@@ -2502,8 +3109,6 @@ class ValidationError {
     required this.loc,
     required this.msg,
     required this.type,
-    this.input,
-    this.ctx,
   });
 
   factory ValidationError.fromJson(Map<String, dynamic> json) =>
@@ -2518,10 +3123,6 @@ class ValidationError {
   final String msg;
   @JsonKey(name: 'type')
   final String type;
-  @JsonKey(name: 'input')
-  final dynamic input;
-  @JsonKey(name: 'ctx')
-  final Object? ctx;
   static const fromJsonFactory = _$ValidationErrorFromJson;
 
   @override
@@ -2533,11 +3134,7 @@ class ValidationError {
             (identical(other.msg, msg) ||
                 const DeepCollectionEquality().equals(other.msg, msg)) &&
             (identical(other.type, type) ||
-                const DeepCollectionEquality().equals(other.type, type)) &&
-            (identical(other.input, input) ||
-                const DeepCollectionEquality().equals(other.input, input)) &&
-            (identical(other.ctx, ctx) ||
-                const DeepCollectionEquality().equals(other.ctx, ctx)));
+                const DeepCollectionEquality().equals(other.type, type)));
   }
 
   @override
@@ -2548,38 +3145,23 @@ class ValidationError {
       const DeepCollectionEquality().hash(loc) ^
       const DeepCollectionEquality().hash(msg) ^
       const DeepCollectionEquality().hash(type) ^
-      const DeepCollectionEquality().hash(input) ^
-      const DeepCollectionEquality().hash(ctx) ^
       runtimeType.hashCode;
 }
 
 extension $ValidationErrorExtension on ValidationError {
-  ValidationError copyWith(
-      {List<Object>? loc,
-      String? msg,
-      String? type,
-      dynamic input,
-      Object? ctx}) {
+  ValidationError copyWith({List<Object>? loc, String? msg, String? type}) {
     return ValidationError(
-        loc: loc ?? this.loc,
-        msg: msg ?? this.msg,
-        type: type ?? this.type,
-        input: input ?? this.input,
-        ctx: ctx ?? this.ctx);
+        loc: loc ?? this.loc, msg: msg ?? this.msg, type: type ?? this.type);
   }
 
   ValidationError copyWithWrapped(
       {Wrapped<List<Object>>? loc,
       Wrapped<String>? msg,
-      Wrapped<String>? type,
-      Wrapped<dynamic>? input,
-      Wrapped<Object?>? ctx}) {
+      Wrapped<String>? type}) {
     return ValidationError(
         loc: (loc != null ? loc.value : this.loc),
         msg: (msg != null ? msg.value : this.msg),
-        type: (type != null ? type.value : this.type),
-        input: (input != null ? input.value : this.input),
-        ctx: (ctx != null ? ctx.value : this.ctx));
+        type: (type != null ? type.value : this.type));
   }
 }
 
