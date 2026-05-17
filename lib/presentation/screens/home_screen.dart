@@ -49,6 +49,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           )
         ),
         actions: [
+          IconButton(
+            onPressed: () => context.push('/configuracion'),
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: Color(0xFF718096),
+              size: 22,
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: GestureDetector(
