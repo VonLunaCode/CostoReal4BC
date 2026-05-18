@@ -7,7 +7,10 @@ import 'package:go_router/go_router.dart';
 import '../../data/api_generated/openapi.models.swagger.dart';
 import '../../data/api_provider.dart';
 import '../../services/alarma_ininterrumpible_service.dart';
+import '../../services/foreground_service.dart';
+import '../../services/notification_service.dart';
 import '../../services/sound_service.dart';
+import 'package:flutter/foundation.dart';
 
 class CronometroWidget extends ConsumerStatefulWidget {
   final TemporizadorResponse temporizador;
@@ -27,8 +30,8 @@ class _CronometroWidgetState extends ConsumerState<CronometroWidget> {
   late int _segundosRestantes;
   Timer? _timer;
   late final int _stickyId;
-  final FlutterLocalNotificationsPlugin _notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin get _notificationsPlugin =>
+      NotificationService.instance.plugin;
 
   // Double-tap cancel state
   bool _cancelArmed = false;
@@ -50,6 +53,21 @@ class _CronometroWidgetState extends ConsumerState<CronometroWidget> {
       _segundosRestantes = widget.temporizador.duracionSegundos;
     }
 
+    // Schedule via native AlarmManager.setAlarmClock() — grants BAL exemption
+    // so the BroadcastReceiver can launch our Activity even on Android 14-16
+    NativeAlarmService.scheduleAlarm(
+      duracionSegundos: _segundosRestantes,
+      temporizadorId: widget.temporizador.id,
+      nombreFase: widget.paso.descripcion,
+    );
+
+    // Also schedule via flutter_local_notifications as notification-only fallback
+    AlarmaIninterrumpibleService.instance.programarAlarma(
+      duracionSegundos: _segundosRestantes,
+      nombreFase: widget.paso.descripcion,
+      temporizadorId: widget.temporizador.id,
+    );
+
     _timer = Timer.periodic(const Duration(seconds: 1), _onTick);
     _actualizarNotificacionSticky();
   }
@@ -68,19 +86,23 @@ class _CronometroWidgetState extends ConsumerState<CronometroWidget> {
     if (restantes <= 0) {
       t.cancel();
       _notificationsPlugin.cancel(_stickyId);
-      SoundService.instance.playAlarm();
-      // Fire alarm for background/lockscreen scenarios
-      AlarmaIninterrumpibleService.instance.programarAlarma(
-        duracionSegundos: 0,
-        nombreFase: widget.paso.descripcion,
-        temporizadorId: widget.temporizador.id,
-      );
-      // Push confirmar-alarma, when it pops pop cronometro too (back to ModoCocina)
+      // Cancel the native AlarmManager alarm since we're handling it in-app
+      await NativeAlarmService.cancelAlarm(widget.temporizador.id);
+      await AlarmaIninterrumpibleService.instance.cancelarAlarma(widget.temporizador.id);
+      try {
+        await SoundService.instance.playAlarm();
+      } catch (e) {
+        debugPrint('SoundService error: $e');
+      }
       if (mounted) {
-        final nombreFase = Uri.encodeComponent(widget.paso.descripcion);
-        await context.push(
-          '/confirmar-alarma?temporizadorId=${widget.temporizador.id}&nombreFase=$nombreFase',
+        final uri = Uri(
+          path: '/confirmar-alarma',
+          queryParameters: {
+            'temporizadorId': widget.temporizador.id,
+            'nombreFase': widget.paso.descripcion,
+          },
         );
+        await context.push(uri.toString());
         if (mounted) context.pop();
       }
     }
@@ -134,6 +156,8 @@ class _CronometroWidgetState extends ConsumerState<CronometroWidget> {
   Future<void> _ejecutarCancelar() async {
     _timer?.cancel();
     _notificationsPlugin.cancel(_stickyId);
+    await NativeAlarmService.cancelAlarm(widget.temporizador.id);
+    await AlarmaIninterrumpibleService.instance.cancelarAlarma(widget.temporizador.id);
     final api = ref.read(apiProvider);
     await api.apiV1TemporizadoresIdCancelarPatch(id: widget.temporizador.id);
     if (mounted) context.pop();

@@ -22,10 +22,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _requestNotificationsOnce() async {
     const storage = FlutterSecureStorage();
+
     final alreadyRequested = await storage.read(key: 'notifications_requested');
     if (alreadyRequested == null) {
       await NotificationService.instance.requestPermissions();
       await storage.write(key: 'notifications_requested', value: 'true');
+      return;
+    }
+
+    // Separate guard for full-screen-intent (Android 14+) — added after initial release
+    final fsiRequested = await storage.read(key: 'fsi_requested');
+    if (fsiRequested == null) {
+      await NotificationService.instance.requestFullScreenIntentPermission();
+      await storage.write(key: 'fsi_requested', value: 'true');
     }
   }
 

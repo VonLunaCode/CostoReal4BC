@@ -12,6 +12,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
+  FlutterLocalNotificationsPlugin get plugin => _plugin;
+
   static const AndroidNotificationChannel _kitchenAlarmChannel =
       AndroidNotificationChannel(
     'kitchen_alarms',
@@ -22,11 +24,22 @@ class NotificationService {
     playSound: true,
   );
 
+  static const AndroidNotificationChannel _kitchenTimerChannel =
+      AndroidNotificationChannel(
+    'kitchen_timer',
+    'Temporizador en curso',
+    description: 'Progreso del temporizador activo',
+    importance: Importance.low,
+    enableVibration: false,
+    playSound: false,
+  );
+
   Future<void> initialize() async {
-    await _plugin
+    final androidImpl = _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(_kitchenAlarmChannel);
+            AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.createNotificationChannel(_kitchenAlarmChannel);
+    await androidImpl?.createNotificationChannel(_kitchenTimerChannel);
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -51,11 +64,22 @@ class NotificationService {
       if (response.payload != null && response.payload!.isNotEmpty) {
         final payload = jsonDecode(response.payload!);
         final temporizadorId = payload['temporizadorId']?.toString() ?? '';
-        final nombreFase = Uri.encodeComponent(payload['nombreFase']?.toString() ?? 'Fase');
+        final nombreFase = payload['nombreFase']?.toString() ?? 'Fase';
         if (temporizadorId.isNotEmpty) {
-          appNavigatorKey.currentContext?.go(
-            '/confirmar-alarma?temporizadorId=$temporizadorId&nombreFase=$nombreFase',
-          );
+          final ctx = appNavigatorKey.currentContext;
+          if (ctx != null) {
+            final location = GoRouterState.of(ctx).matchedLocation;
+            if (!location.startsWith('/confirmar-alarma')) {
+              final uri = Uri(
+                path: '/confirmar-alarma',
+                queryParameters: {
+                  'temporizadorId': temporizadorId,
+                  'nombreFase': nombreFase,
+                },
+              );
+              ctx.push(uri.toString());
+            }
+          }
         }
       }
     } catch (e) {
@@ -64,11 +88,15 @@ class NotificationService {
   }
 
   Future<bool> requestPermissions() async {
-    final androidGranted = await _plugin
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>()
-            ?.requestNotificationsPermission() ??
-        false;
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    final androidGranted =
+        await androidImpl?.requestNotificationsPermission() ?? false;
+
+    // Required on Android 14+ for fullScreenIntent to show over other apps
+    await requestFullScreenIntentPermission();
 
     final iosGranted = await _plugin
             .resolvePlatformSpecificImplementation<
@@ -82,6 +110,13 @@ class NotificationService {
         false;
 
     return androidGranted || iosGranted;
+  }
+
+  Future<void> requestFullScreenIntentPermission() async {
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestFullScreenIntentPermission();
   }
 
   Future<void> showTestNotification() async {

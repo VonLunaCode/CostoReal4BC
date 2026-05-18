@@ -195,7 +195,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/confirmar-alarma',
         builder: (context, state) {
           final temporizadorId = state.uri.queryParameters['temporizadorId'] ?? '';
-          final nombreFase = Uri.decodeComponent(state.uri.queryParameters['nombreFase'] ?? 'Fase');
+          final nombreFase = state.uri.queryParameters['nombreFase'] ?? 'Fase';
           return ConfirmarAlarmaScreen(temporizadorId: temporizadorId, nombreFase: nombreFase);
         },
       ),

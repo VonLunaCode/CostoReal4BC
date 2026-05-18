@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
+import 'notification_service.dart';
 
 class AlarmaIninterrumpibleService {
   static final AlarmaIninterrumpibleService _instance =
@@ -12,8 +13,7 @@ class AlarmaIninterrumpibleService {
 
   AlarmaIninterrumpibleService._();
 
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin get _plugin => NotificationService.instance.plugin;
 
   bool _timezoneInitialized = false;
 
@@ -33,7 +33,8 @@ class AlarmaIninterrumpibleService {
   }) async {
     await _ensureTimezoneInitialized();
 
-    final notificationId = temporizadorId.hashCode.abs() % 100000;
+    // Offset by 100000 to avoid colliding with the sticky timer notification
+    final notificationId = (temporizadorId.hashCode.abs() % 100000) + 100000;
     // Minimum 2 seconds so Android alarm manager fires reliably
     final effectiveSecs = duracionSegundos < 2 ? 2 : duracionSegundos;
     final scheduledTime = tz.TZDateTime.now(tz.local)
@@ -81,8 +82,46 @@ class AlarmaIninterrumpibleService {
     );
   }
 
+  Future<void> mostrarAlarmaInmediata({
+    required String nombreFase,
+    required String temporizadorId,
+  }) async {
+    final notificationId = (temporizadorId.hashCode.abs() % 100000) + 100000;
+    final payload = jsonEncode({
+      'temporizadorId': temporizadorId,
+      'nombreFase': nombreFase,
+    });
+
+    const androidDetails = AndroidNotificationDetails(
+      'kitchen_alarms',
+      'Alarmas de Cocina',
+      channelDescription: 'Notificaciones críticas para temporizadores',
+      importance: Importance.max,
+      priority: Priority.max,
+      fullScreenIntent: true,
+      playSound: true,
+      enableVibration: true,
+      autoCancel: false,
+      ongoing: true,
+      category: AndroidNotificationCategory.alarm,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      interruptionLevel: InterruptionLevel.critical,
+      sound: 'alarm.aiff',
+    );
+
+    await _plugin.show(
+      notificationId,
+      'Kitchy',
+      nombreFase,
+      const NotificationDetails(android: androidDetails, iOS: iosDetails),
+      payload: payload,
+    );
+  }
+
   Future<void> cancelarAlarma(String temporizadorId) async {
-    final id = temporizadorId.hashCode.abs() % 100000;
+    final id = (temporizadorId.hashCode.abs() % 100000) + 100000;
     await _plugin.cancel(id);
   }
 }

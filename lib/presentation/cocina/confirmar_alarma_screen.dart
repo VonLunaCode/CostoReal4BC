@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../data/api_provider.dart';
 import '../../services/alarma_ininterrumpible_service.dart';
+import '../../services/foreground_service.dart';
 import '../../services/sound_service.dart';
 
 class ConfirmarAlarmaScreen extends ConsumerStatefulWidget {
@@ -81,6 +82,7 @@ class _ConfirmarAlarmaScreenState extends ConsumerState<ConfirmarAlarmaScreen>
       await api.apiV1TemporizadoresIdConfirmarPatch(id: widget.temporizadorId);
       await AlarmaIninterrumpibleService.instance
           .cancelarAlarma(widget.temporizadorId);
+      await NativeAlarmService.stopAlarmSound();
       await SoundService.instance.stop();
       if (mounted) context.pop();
     } catch (e) {

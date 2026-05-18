@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'theme/kitchy_colors.dart';
 import 'theme/kitchy_typography.dart';
 import 'core/router.dart';
+import 'services/foreground_service.dart';
 import 'services/notification_service.dart';
 import 'services/sync_service.dart';
 
@@ -20,6 +21,7 @@ void main() async {
   await Hive.openBox('offline_queue');
 
   await NotificationService.instance.initialize();
+  NativeAlarmService.registerListener();
 
   // Inicializar formatos de fecha para español
   await initializeDateFormatting('es_ES', null);
