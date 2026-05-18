@@ -25,28 +25,32 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
-      final api = ref.read(apiProvider);
-      final response = await api.apiV1AuthRegisterPost(
-        body: UserCreate(
-          email: _emailController.text,
-          password: _passwordController.text,
-        ),
-      );
 
-      if (mounted) {
-        if (response.isSuccessful) {
-          setState(() => _errorMessage = null);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('¡Registro exitoso! Iniciando sesión...'), backgroundColor: Color(0xFF6A9B7A)),
-          );
-          // Auto login tras registro exitoso
-          await ref.read(authProvider.notifier).login(_emailController.text, _passwordController.text);
-        } else {
-          setState(() => _errorMessage = 'Error en registro. El correo podría ya existir.');
+      try {
+        final api = ref.read(apiProvider);
+        final response = await api.apiV1AuthRegisterPost(
+          body: UserCreate(
+            email: _emailController.text,
+            password: _passwordController.text,
+          ),
+        );
+
+        if (mounted) {
+          if (response.isSuccessful) {
+            setState(() => _errorMessage = null);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('¡Registro exitoso! Iniciando sesión...'), backgroundColor: Color(0xFF6A9B7A)),
+            );
+            await ref.read(authProvider.notifier).login(_emailController.text, _passwordController.text);
+          } else {
+            setState(() => _errorMessage = 'Error en registro. El correo podría ya existir.');
+          }
         }
+      } catch (_) {
+        if (mounted) setState(() => _errorMessage = 'Error de conexión. Revisá tu internet.');
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
-      if (mounted) setState(() => _isLoading = false);
     } else {
       setState(() => _errorMessage = 'Por favor, revisa los campos en rojo.');
     }

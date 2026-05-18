@@ -10,7 +10,7 @@ class _TimeoutClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) =>
-      _inner.send(request).timeout(const Duration(seconds: 3));
+      _inner.send(request).timeout(const Duration(seconds: 15));
 }
 
 final apiProvider = Provider<Openapi>((ref) {

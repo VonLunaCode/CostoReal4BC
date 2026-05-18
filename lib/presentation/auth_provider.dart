@@ -29,18 +29,22 @@ class AuthNotifier extends Notifier<AuthState> {
 
   /// Verifica si hay un token persistente y si es válido.
   Future<void> _checkStatus() async {
-    final storage = ref.read(storageServiceProvider);
-    final api = ref.read(apiProvider);
-    final token = await storage.getToken();
-    
-    if (token != null) {
-      final response = await api.apiV1UsersMeGet();
-      if (response.isSuccessful) {
-        state = AuthState(status: AuthStatus.authenticated);
-        return;
+    try {
+      final storage = ref.read(storageServiceProvider);
+      final api = ref.read(apiProvider);
+      final token = await storage.getToken();
+
+      if (token != null) {
+        final response = await api.apiV1UsersMeGet();
+        if (response.isSuccessful) {
+          state = AuthState(status: AuthStatus.authenticated);
+          return;
+        }
       }
+      state = AuthState(status: AuthStatus.unauthenticated);
+    } catch (_) {
+      state = AuthState(status: AuthStatus.unauthenticated);
     }
-    state = AuthState(status: AuthStatus.unauthenticated);
   }
 
   /// Proceso de Login.
@@ -48,22 +52,28 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(status: AuthStatus.loading);
     final storage = ref.read(storageServiceProvider);
     final api = ref.read(apiProvider);
-    
-    // FastAPI OAuth2PasswordRequestForm espera 'username' y 'password'
-    final response = await api.apiV1AuthLoginPost(
-      body: {'username': email, 'password': password},
-    );
 
-    if (response.isSuccessful && response.body != null) {
-      final token = response.body?.accessToken;
-      if (token != null) {
-        await storage.saveToken(token);
+    try {
+      final response = await api.apiV1AuthLoginPost(
+        body: {'username': email, 'password': password},
+      );
+
+      if (response.isSuccessful && response.body != null) {
+        final token = response.body?.accessToken;
+        if (token != null) {
+          await storage.saveToken(token);
+        }
+        state = AuthState(status: AuthStatus.authenticated);
+      } else {
+        state = AuthState(
+          status: AuthStatus.unauthenticated,
+          errorMessage: 'Error en Login: Comprueba tus credenciales',
+        );
       }
-      state = AuthState(status: AuthStatus.authenticated);
-    } else {
+    } catch (_) {
       state = AuthState(
         status: AuthStatus.unauthenticated,
-        errorMessage: 'Error en Login: Comprueba tus credenciales',
+        errorMessage: 'Error de conexión. Revisá tu internet.',
       );
     }
   }
